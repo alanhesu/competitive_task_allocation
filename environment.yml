@@ -1,0 +1,10 @@
+name: cs7631
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy
+  - python==3.10.4
+  - pip
+  - matplotlib==3.5.2
+  - networkx
