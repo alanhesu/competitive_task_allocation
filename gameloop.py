@@ -16,16 +16,6 @@ class GameLoop():
         self.init_agents()
         self.reset()
 
-        # self.fig = plt.figure()
-        # plt.ion()
-        # for point in self.graph.nodes(data='pos'):
-        #     plt.scatter(point[1][0], point[1][1])
-
-        # plt.draw()
-        # plt.grid(True)
-        # plt.show(block=False)
-        # plt.pause(0.001)
-
     def loop(self):
         while not all(self.done_tasks.values()):
             # print('gameloop')
@@ -35,6 +25,9 @@ class GameLoop():
                 for key in self.done_tasks:
                     self.done_tasks[key] = self.done_tasks[key] or agent.get_done_tasks()[key]
                     agent.update_done_tasks(self.done_tasks)
+        self.plot_graph()
+        print(self.total_cost())
+        print(self.minmax())
 
     def reset(self):
         self.done_tasks = {x: False for x in self.graph.nodes}
@@ -49,3 +42,40 @@ class GameLoop():
             del nodeweights[self.start]
             newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights)
             self.agents.append(newagent)
+
+    def plot_graph(self):
+        plt.figure()
+        # plot nodes
+        nodes = nx.get_node_attributes(self.graph, 'pos')
+        # nx.draw(self.graph, with_labels=True, labels=nodes)
+        x = [x[0] for x in nodes.values()]
+        y = [x[1] for x in nodes.values()]
+        plt.scatter(x, y, s=100)
+        # plot start node
+        plt.scatter(nodes[self.start][0], nodes[self.start][1], s=100, color='r')
+
+        # plot agent histories
+        for agent in self.agents:
+            x = [x[0] for x in agent.travel_hist]
+            y = [x[1] for x in agent.travel_hist]
+            plt.plot(x, y, label='agent {}'.format(agent.id))
+        plt.legend()
+        # plt.show()
+        plt.savefig('graph.png')
+
+    def total_cost(self):
+        cost = 0
+        for agent in self.agents:
+            for i in range(1, len(agent.travel_hist)):
+                cost += euclidean(agent.travel_hist[i], agent.travel_hist[i-1])
+        return cost
+
+    def minmax(self):
+        max_cost = -np.inf
+        for agent in self.agents:
+            cost = 0
+            for i in range(1, len(agent.travel_hist)):
+                cost += euclidean(agent.travel_hist[i], agent.travel_hist[i-1])
+            if (cost > max_cost):
+                max_cost = cost
+        return max_cost
