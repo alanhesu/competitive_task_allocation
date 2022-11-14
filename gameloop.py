@@ -3,6 +3,7 @@ import numpy as np
 import copy
 from agent import Agent, euclidean
 import matplotlib.pyplot as plt
+import params
 
 class GameLoop():
     def __init__(self, graph=None, num_agents=2, start=None):
@@ -17,14 +18,18 @@ class GameLoop():
         self.reset()
 
     def loop(self):
-        while not all(self.done_tasks.values()):
+        while not all(self.agent_dones.values()):
             # print('gameloop')
             for agent in self.agents:
+                if (agent.done):
+                    continue
                 agent.step()
                 #TODO: update done tasks list and propogate for all agents
                 for key in self.done_tasks:
                     self.done_tasks[key] = self.done_tasks[key] or agent.get_done_tasks()[key]
                     agent.update_done_tasks(self.done_tasks)
+                self.agent_dones[agent.id] = agent.done
+
         self.plot_graph()
         print(self.total_cost())
         print(self.minmax())
@@ -32,8 +37,10 @@ class GameLoop():
     def reset(self):
         self.done_tasks = {x: False for x in self.graph.nodes}
         del self.done_tasks[self.start]
+        self.agent_dones = {}
         for agent in self.agents:
             agent.reset()
+            self.agent_dones[agent.id] = agent.done
 
     def init_agents(self):
         self.agents = []
@@ -42,6 +49,12 @@ class GameLoop():
             del nodeweights[self.start]
             newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights)
             self.agents.append(newagent)
+
+    def set_nodeweights(self, nodeweights_arr):
+        # nodeweights_arr is a 2d np array
+        for r, agent in enumerate(self.agents):
+            for c, node in enumerate(agent.nodeweights_base.keys()):
+                agent.nodeweights_base[node] = nodeweights_arr[r,c]
 
     def plot_graph(self):
         plt.figure()
@@ -58,7 +71,7 @@ class GameLoop():
         for agent in self.agents:
             x = [x[0] for x in agent.travel_hist]
             y = [x[1] for x in agent.travel_hist]
-            plt.plot(x, y, label='agent {}'.format(agent.id))
+            plt.scatter(x, y, label='agent {}'.format(agent.id), s=1)
         plt.legend()
         # plt.show()
         plt.savefig('graph.png')
@@ -66,16 +79,13 @@ class GameLoop():
     def total_cost(self):
         cost = 0
         for agent in self.agents:
-            for i in range(1, len(agent.travel_hist)):
-                cost += euclidean(agent.travel_hist[i], agent.travel_hist[i-1])
+            cost += len(agent.travel_hist)
         return cost
 
     def minmax(self):
         max_cost = -np.inf
         for agent in self.agents:
-            cost = 0
-            for i in range(1, len(agent.travel_hist)):
-                cost += euclidean(agent.travel_hist[i], agent.travel_hist[i-1])
+            cost = len(agent.travel_hist)
             if (cost > max_cost):
                 max_cost = cost
         return max_cost

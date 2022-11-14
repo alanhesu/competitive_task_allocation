@@ -3,6 +3,7 @@ import numpy as np
 import copy
 from agent import Agent, euclidean
 import matplotlib.pyplot as plt
+import params
 
 class Allocator:
     def __init__(self):
