@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from gameloop import GameLoop
 from agent import euclidean
+from allocator import Allocator
 import params
 
 G = nx.complete_graph(params.NUM_NODES)
@@ -36,5 +37,8 @@ labels = nx.get_node_attributes(G, 'pos')
 # nx.draw(G, with_labels=True, labels=labels)
 # plt.show()
 
-gameloop = GameLoop(graph=G, num_agents=2)
-gameloop.loop()
+# gameloop = GameLoop(graph=G, num_agents=params.NUM_AGENTS)
+# gameloop.loop()
+
+allocator = Allocator(graph=G, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS)
+allocator.allocate()

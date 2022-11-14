@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 import params
 
 class GameLoop():
-    def __init__(self, graph=None, num_agents=2, start=None):
+    def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1):
         self.graph = graph
         self.num_agents = num_agents
+        self.id = id
         if (start is None):
             self.start = list(self.graph.nodes)[0] #TODO just choosing the first node for now
         else:
@@ -31,8 +32,6 @@ class GameLoop():
                 self.agent_dones[agent.id] = agent.done
 
         self.plot_graph()
-        print(self.total_cost())
-        print(self.minmax())
 
     def reset(self):
         self.done_tasks = {x: False for x in self.graph.nodes}
@@ -74,7 +73,7 @@ class GameLoop():
             plt.scatter(x, y, label='agent {}'.format(agent.id), s=1)
         plt.legend()
         # plt.show()
-        plt.savefig('graph.png')
+        plt.savefig('graph_{}.png'.format(self.id))
 
     def total_cost(self):
         cost = 0
