@@ -54,6 +54,17 @@ class Allocator:
             print(list(nodeweights_pop.values())[0].shape)
             #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             print(scores.shape)
+            
+            new_population  = self.selection_pair(nodeweights_pop,scores) # elites survive
+            while len(new_population) <= params.POPSIZE:
+                operator = random.random()
+                print(operator)
+                break
+            '''
+            sort scores and the highest two scores (of games) are kept, others discarded 
+            until rest of discarded games (len scores - 2) are filled, crossover the two games until only 1 empty game left
+            for last game, mutation 
+            '''
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
 
     def init_nodeweights(self):
@@ -92,6 +103,3 @@ class Allocator:
             index = randrange(len(population))
             population[index] = population[index] if random() > probability else abs(population[index] - 1)
         return population
-
-
-

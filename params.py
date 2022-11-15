@@ -1,8 +1,11 @@
 # problem size
-NUM_NODES = 5
-NUM_AGENTS = 4
-NUM_ELITE = 2
-POPSIZE = 4
+NUM_NODES = 10
+NUM_AGENTS = 2
+POPSIZE = 10
+
+# observability params
+GLOBAL_DONES = False # set to true: all agents update their done_tasks list from global information
+GLOBAL_INTENT = False # set to true: an agent will not select a goal if another is already moving towards it
 
 # obstacles
 EDGE_MULT = 2 # randomly multiply edge weight by up to this amount
