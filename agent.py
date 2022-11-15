@@ -89,7 +89,7 @@ class Agent:
 
     def reset(self):
         self.nodeweights = copy.deepcopy(self.nodeweights_base)
-        self.done_tasks = {x: False for x in self.nodeweights_base.keys()}
+        self.done_tasks = {x: False for x in self.nodeweights_base.keys() if x != self.start}
         self.state = States.IDLE
         self.goal = None
         self.position = self.graph.nodes[self.start]['pos']

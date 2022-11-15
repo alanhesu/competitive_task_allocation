@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import params
 
 class GameLoop():
-    def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1, global_dones=params.GLOBAL_DONES):
+    def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1,
+                global_dones=params.GLOBAL_DONES):
         self.graph = graph
         self.num_agents = num_agents
         self.id = id
@@ -36,8 +37,8 @@ class GameLoop():
         self.plot_graph()
 
     def reset(self):
-        self.done_tasks = {x: False for x in self.graph.nodes}
-        del self.done_tasks[self.start]
+        self.done_tasks = {x: False for x in self.graph.nodes if x != self.start}
+        # del self.done_tasks[self.start]
         self.agent_dones = {}
         for agent in self.agents:
             agent.reset()
