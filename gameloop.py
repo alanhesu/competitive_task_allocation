@@ -81,6 +81,7 @@ class GameLoop():
         plt.legend()
         # plt.show()
         plt.savefig('graph_{}.png'.format(self.id))
+        plt.close()
 
     def total_cost(self):
         cost = 0

@@ -29,8 +29,8 @@ class Allocator:
         scores = np.zeros(self.popsize)
 
         # in a loop until convergence:
-        for i in range(0, params.MAX_ITER):
-            print('allocator iteration {}'.format(i))
+        for iter in range(0, params.MAX_ITER):
+            print('allocator iteration {}'.format(iter))
             # run the game loop n number of times to get n matrices of nodeweights
             for i, gameloop in enumerate(self.gameloops):
                 gameloop.set_nodeweights(nodeweights_pop[gameloop.id])
@@ -52,6 +52,7 @@ class Allocator:
 
             print(list(nodeweights_pop.values())[0].shape)
             print(scores.shape)
+            print('iter {} average score = {}'.format(iter, np.mean(scores)))
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
 
     def init_nodeweights(self):
@@ -61,7 +62,6 @@ class Allocator:
             nodeweights_pop[gameloop.id] = np.random.rand(self.num_agents, len(list(self.graph.nodes)))
             if (params.START_WEIGHT != 1):
                 nodeweights_pop[gameloop.id][:,gameloop.start] = params.START_WEIGHT
-            print(nodeweights_pop[gameloop.id])
         return nodeweights_pop
 
     def fitness_calc(self, agent):

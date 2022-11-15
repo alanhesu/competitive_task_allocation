@@ -120,6 +120,7 @@ class Agent:
         return dX
 
     def calc_nodeweights(self):
+        #TODO: Don't decay the start node weight?
         weights = copy.deepcopy(self.nodeweights)
         for key in weights:
             weight = weights[key]
