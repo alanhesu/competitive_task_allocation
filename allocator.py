@@ -2,6 +2,8 @@ import networkx as nx
 import numpy as np
 import copy
 from random import choices, random, gauss, randrange, randint
+import sys
+
 from agent import Agent, euclidean
 from gameloop import GameLoop
 import matplotlib.pyplot as plt
@@ -44,27 +46,23 @@ class Allocator:
                 print(gameloop.total_cost())
                 print(gameloop.minmax())
 
+                sys.stdout.flush()
+
             # run GA to get new nodeweights
 
 
             print(list(nodeweights_pop.values())[0].shape)
             #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             print(scores.shape)
-            
-            new_population  = self.selection_pair(nodeweights_pop,scores) # elites survive
-            while len(new_population) <= params.POPSIZE:
-                pass
-            '''
-            sort scores and the highest two scores (of games) are kept, others discarded 
-            until rest of discarded games (len scores - 2) are filled, crossover the two games until only 1 empty game left
-            for last game, mutation 
-            '''
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
 
     def init_nodeweights(self):
         nodeweights_pop = {}
+        interval = int(len(list(self.graph.nodes))/self.num_agents)
         for gameloop in self.gameloops:
             nodeweights_pop[gameloop.id] = np.random.rand(self.num_agents, len(list(self.graph.nodes)))
+            if (params.START_WEIGHT != 1):
+                nodeweights_pop[gameloop.id][:,gameloop.start] = params.START_WEIGHT
         return nodeweights_pop
 
     # select agents that survive to next generation based on fitness, number based on num_elite parameter
@@ -96,4 +94,4 @@ class Allocator:
         return population
 
 
-    
+

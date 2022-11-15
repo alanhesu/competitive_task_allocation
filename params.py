@@ -9,10 +9,12 @@ EDGE_MULT = 2 # randomly multiply edge weight by up to this amount
 
 # agent params
 EPSILON = 0 # epsilon-greedy
-GAMMA = .99 # weight decay
-WEIGHT_ALPHA = 1 # distance score weight
+GAMMA = 1 # weight decay
+WEIGHT_ALPHA = 0 # distance score weight
 WEIGHT_BETA = 1 # node score weight
+START_WEIGHT = .1 # initial nodeweight for returning to start. Set to 1 to make it random
 
 # GA hyperparams
-MAX_ITER = 10
-METRIC = 'total'
+MAX_ITER = 1
+METRIC = 'total' # total or minmax
+INCOMPLETE_PENALTY = -1e10

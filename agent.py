@@ -11,7 +11,8 @@ class States(Enum):
     HOMING = 4
 
 class Agent:
-    def __init__(self, graph=None, start=None, id=1, obs=[], speed=1, eps=params.EPSILON, nodeweights=None, gamma=params.GAMMA, alpha=params.WEIGHT_ALPHA, beta=params.WEIGHT_BETA):
+    def __init__(self, graph=None, start=None, id=1, obs=[], speed=1, eps=params.EPSILON, nodeweights=None,
+                gamma=params.GAMMA, alpha=params.WEIGHT_ALPHA, beta=params.WEIGHT_BETA):
         self.graph = graph # a networkx graph
         self.start = start # starting node in the graph
         self.id = id
@@ -44,11 +45,15 @@ class Agent:
                     self.goal = list(weights.keys())[goal_ind]
             self.state = States.MOVING
 
-            # print('{} moving towards {}'.format(self.id, self.graph.nodes[self.goal]['pos']))
+            print('{} moving towards {} {}'.format(self.id, self.goal, self.graph.nodes[self.goal]['pos']))
 
         elif (self.state == States.MOVING):
             # move towards goal at a speed defined by self.speed
-            dX = self.move_pretend()
+            if (np.allclose(self.position, self.graph.nodes[self.goal]['pos'])):
+                # we're already here
+                dX = np.zeros(2)
+            else:
+                dX = self.move_pretend()
             dist = euclidean(self.position, self.graph.nodes[self.goal]['pos'])
             if (np.linalg.norm(dX) >= dist):
                 # print('{} at {}'.format(self.id, self.goal))
@@ -78,7 +83,8 @@ class Agent:
         self.time += 1
 
         # check the done condition
-        if (all(self.done_tasks.values()) and np.allclose(self.position, self.graph.nodes[self.start]['pos'])):
+        if (np.allclose(self.position, self.graph.nodes[self.start]['pos'])
+            and self.time > 1):
             self.done = True
 
     def reset(self):
@@ -114,6 +120,7 @@ class Agent:
         return dX
 
     def calc_nodeweights(self):
+        #TODO: Don't decay the start node weight?
         weights = copy.deepcopy(self.nodeweights)
         for key in weights:
             weight = weights[key]
