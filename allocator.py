@@ -59,6 +59,9 @@ class Allocator:
         interval = int(len(list(self.graph.nodes))/self.num_agents)
         for gameloop in self.gameloops:
             nodeweights_pop[gameloop.id] = np.random.rand(self.num_agents, len(list(self.graph.nodes)))
+            if (params.START_WEIGHT != 1):
+                nodeweights_pop[gameloop.id][:,gameloop.start] = params.START_WEIGHT
+            print(nodeweights_pop[gameloop.id])
         return nodeweights_pop
 
     def fitness_calc(self, agent):
