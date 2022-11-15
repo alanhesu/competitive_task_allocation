@@ -2,6 +2,8 @@ import networkx as nx
 import numpy as np
 import copy
 from random import choices, random, gauss, randrange, randint
+import sys
+
 from agent import Agent, euclidean
 from gameloop import GameLoop
 import matplotlib.pyplot as plt
@@ -43,6 +45,8 @@ class Allocator:
                 print(gameloop.total_cost())
                 print(gameloop.minmax())
 
+                sys.stdout.flush()
+
             # run GA to get new nodeweights
 
 
@@ -52,6 +56,7 @@ class Allocator:
 
     def init_nodeweights(self):
         nodeweights_pop = {}
+        interval = int(len(list(self.graph.nodes))/self.num_agents)
         for gameloop in self.gameloops:
             nodeweights_pop[gameloop.id] = np.random.rand(self.num_agents, len(list(self.graph.nodes)))
         return nodeweights_pop
@@ -84,4 +89,4 @@ class Allocator:
         return population
 
 
-    
+

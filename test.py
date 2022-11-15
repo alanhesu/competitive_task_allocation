@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
+
 from gameloop import GameLoop
 from agent import euclidean
 from allocator import Allocator

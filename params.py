@@ -13,5 +13,5 @@ WEIGHT_ALPHA = 1 # distance score weight
 WEIGHT_BETA = 1 # node score weight
 
 # GA hyperparams
-MAX_ITER = 10
-METRIC = 'total'
+MAX_ITER = 1
+METRIC = 'total' # total or minmax
