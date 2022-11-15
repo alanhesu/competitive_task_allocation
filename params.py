@@ -1,7 +1,8 @@
 # problem size
 NUM_NODES = 5
-NUM_AGENTS = 2
-POPSIZE = 2
+NUM_AGENTS = 4
+NUM_ELITE = 2
+POPSIZE = 4
 
 # obstacles
 EDGE_MULT = 2 # randomly multiply edge weight by up to this amount

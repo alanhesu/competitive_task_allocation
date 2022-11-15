@@ -8,10 +8,11 @@ import matplotlib.pyplot as plt
 import params
 
 class Allocator:
-    def __init__(self, graph=None, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS, metric=params.METRIC):
+    def __init__(self, graph=None, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS, num_elite=params.NUM_ELITE, metric=params.METRIC):
         self.graph = graph
         self.popsize = popsize
         self.num_agents = num_agents
+        self.num_elite = num_elite
         self.metric = metric
         # initialize the gameloop
         self.gameloops = []
@@ -27,8 +28,8 @@ class Allocator:
         scores = np.zeros(self.popsize)
 
         # in a loop until convergence:
-        for i in range(0, params.MAX_ITER):
-            print('allocator iteration {}'.format(i))
+        for iter in range(0, params.MAX_ITER):
+            print('allocator iteration {}'.format(iter))
             # run the game loop n number of times to get n matrices of nodeweights
             for i, gameloop in enumerate(self.gameloops):
                 gameloop.set_nodeweights(nodeweights_pop[gameloop.id])
@@ -47,7 +48,17 @@ class Allocator:
 
 
             print(list(nodeweights_pop.values())[0].shape)
+            #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             print(scores.shape)
+            
+            new_population  = self.selection_pair(nodeweights_pop,scores) # elites survive
+            while len(new_population) <= params.POPSIZE:
+                pass
+            '''
+            sort scores and the highest two scores (of games) are kept, others discarded 
+            until rest of discarded games (len scores - 2) are filled, crossover the two games until only 1 empty game left
+            for last game, mutation 
+            '''
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
 
     def init_nodeweights(self):
@@ -56,17 +67,18 @@ class Allocator:
             nodeweights_pop[gameloop.id] = np.random.rand(self.num_agents, len(list(self.graph.nodes)))
         return nodeweights_pop
 
-    def fitness_calc(self, agent):
-        return sum(agent)
-
-    # select agents that survive to next generation based on fitness
+    # select agents that survive to next generation based on fitness, number based on num_elite parameter
     # explore: roulette, fittest half, random
-    def selection_pair(self, population):
-        return choices(
-            population=population,
-            weights=[self.fitness_calc(node) for node in population],
-            k=2
-        )
+    # Returns: list of surviving agents
+    def selection_pair(self, pop_weights, scores):
+        ranked_scores = [sorted(scores).index(x) for x in scores]
+        elite_agents = []
+        for _ in range(self.num_elite):
+            elite_idx = ranked_scores.index(max(ranked_scores))
+            ranked_scores[elite_idx] = -1 
+            elite_agents.append(pop_weights[elite_idx])
+    
+        return elite_agents
 
     def single_point_crossover(self, node_a, node_b):
         length = len(node_a)
