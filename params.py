@@ -1,6 +1,7 @@
 # problem size
 NUM_NODES = 10
 NUM_AGENTS = 2
+NUM_ELITES = 2
 POPSIZE = 10
 
 # observability params
@@ -19,5 +20,6 @@ START_WEIGHT = .1 # initial nodeweight for returning to start. Set to 1 to make 
 
 # GA hyperparams
 MAX_ITER = 1
+OPERATOR_THRESHOLD = 0.85 # crossover for less than threshold, mutation for >=
 METRIC = 'total' # total or minmax
 INCOMPLETE_PENALTY = -1e10
