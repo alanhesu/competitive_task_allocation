@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 import copy
+from random import choices, random, gauss, randrange, randint
 from agent import Agent, euclidean
 from gameloop import GameLoop
 import matplotlib.pyplot as plt
@@ -43,6 +44,8 @@ class Allocator:
                 print(gameloop.minmax())
 
             # run GA to get new nodeweights
+
+
             print(list(nodeweights_pop.values())[0].shape)
             print(scores.shape)
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
@@ -52,3 +55,33 @@ class Allocator:
         for gameloop in self.gameloops:
             nodeweights_pop[gameloop.id] = np.random.rand(self.num_agents, len(list(self.graph.nodes)))
         return nodeweights_pop
+
+    def fitness_calc(self, agent):
+        return sum(agent)
+
+    # select agents that survive to next generation based on fitness
+    # explore: roulette, fittest half, random
+    def selection_pair(self, population):
+        return choices(
+            population=population,
+            weights=[self.fitness_calc(node) for node in population],
+            k=2
+        )
+
+    def single_point_crossover(self, node_a, node_b):
+        length = len(node_a)
+        if length < 2:
+            return node_a, node_b
+
+        p = randint(1, length - 1)
+        return node_a[0:p] + node_b[p:], node_b[0:p] + node_a[p:]
+
+
+    def mutation(self, population, probability = 0.5):
+        for _ in range(1): #set mutation rate
+            index = randrange(len(population))
+            population[index] = population[index] if random() > probability else abs(population[index] - 1)
+        return population
+
+
+    
