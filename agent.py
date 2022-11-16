@@ -12,7 +12,8 @@ class States(Enum):
 
 class Agent:
     def __init__(self, graph=None, start=None, id=1, obs=[], speed=1, eps=params.EPSILON, nodeweights=None,
-                gamma=params.GAMMA, alpha=params.WEIGHT_ALPHA, beta=params.WEIGHT_BETA):
+                gamma=params.GAMMA, alpha=params.WEIGHT_ALPHA, beta=params.WEIGHT_BETA,
+                see_dones=params.SEE_DONES):
         self.graph = graph # a networkx graph
         self.start = start # starting node in the graph
         self.id = id
@@ -22,6 +23,7 @@ class Agent:
         self.gamma = gamma
         self.alpha = alpha
         self.beta = beta
+        self.see_dones = see_dones
         self.nodeweights_base = nodeweights # a dict of node:weight pairs
 
         # calculate the max distance as the diagonal of the graph bounding box so we can scale
@@ -32,6 +34,12 @@ class Agent:
     def step(self):
         # print(self.position)
         if (self.state == States.IDLE):
+            if (self.see_dones):
+                delete = [key for key in self.nodeweights if key in self.done_tasks and self.done_tasks[key]]
+                for key in delete:
+                    # print('{} is already done, removing from {}'.format(key, self.id))
+                    del self.nodeweights[key]
+
             if (all(self.done_tasks.values())):
                 self.goal = self.start
             else:

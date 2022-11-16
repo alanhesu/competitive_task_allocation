@@ -7,12 +7,14 @@ import params
 
 class GameLoop():
     def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1,
-                global_dones=params.GLOBAL_DONES):
+                global_dones=params.GLOBAL_DONES, see_dones=params.SEE_DONES, plot=True):
         self.graph = graph
         self.num_agents = num_agents
         self.id = id
+        self.plot = plot
 
         self.global_dones = global_dones
+        self.see_dones = see_dones
         if (start is None):
             self.start = list(self.graph.nodes)[0] #TODO just choosing the first node for now
         else:
@@ -34,7 +36,8 @@ class GameLoop():
                         agent.update_done_tasks(self.done_tasks)
                 self.agent_dones[agent.id] = agent.done
 
-        self.plot_graph()
+        if (self.plot):
+            self.plot_graph()
 
     def reset(self):
         self.done_tasks = {x: False for x in self.graph.nodes if x != self.start}
@@ -49,7 +52,7 @@ class GameLoop():
         for i in range(0, self.num_agents):
             nodeweights = {x: np.random.rand() for x in self.graph.nodes}
             # del nodeweights[self.start]
-            newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights)
+            newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights, see_dones=self.see_dones)
             self.agents.append(newagent)
 
     def set_nodeweights(self, nodeweights_arr):

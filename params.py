@@ -1,11 +1,12 @@
 # problem size
 NUM_NODES = 10
 NUM_AGENTS = 2
-NUM_ELITES = 2
-POPSIZE = 10
+NUM_ELITE = 2
+POPSIZE = 20
 
 # observability params
-GLOBAL_DONES = True # set to true: all agents update their done_tasks list from global information
+GLOBAL_DONES = False # set to true: all agents update their done_tasks list from global information
+SEE_DONES = False # set to true: an agent will not select a goal if it is already done, must have GLOBAL_DONES=True
 GLOBAL_INTENT = False # set to true: an agent will not select a goal if another is already moving towards it
 
 # obstacles

@@ -54,16 +54,16 @@ class Allocator:
             print(list(nodeweights_pop.values())[0].shape)
             #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             print(scores.shape)
-            
+
             new_population  = self.selection_pair(nodeweights_pop,scores) # elites survive
             while len(new_population) <= params.POPSIZE:
                 operator = random.random()
                 print(operator)
                 break
             '''
-            sort scores and the highest two scores (of games) are kept, others discarded 
+            sort scores and the highest two scores (of games) are kept, others discarded
             until rest of discarded games (len scores - 2) are filled, crossover the two games until only 1 empty game left
-            for last game, mutation 
+            for last game, mutation
             '''
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
 
@@ -84,9 +84,9 @@ class Allocator:
         elite_agents = []
         for _ in range(self.num_elite):
             elite_idx = ranked_scores.index(max(ranked_scores))
-            ranked_scores[elite_idx] = -1 
+            ranked_scores[elite_idx] = -1
             elite_agents.append(pop_weights[elite_idx])
-    
+
         return elite_agents
 
     def single_point_crossover(self, node_a, node_b):
