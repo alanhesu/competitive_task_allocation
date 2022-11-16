@@ -33,24 +33,35 @@ class Agent:
 
     def step(self):
         # print(self.position)
-        if (self.state == States.IDLE):
-            if (self.see_dones):
-                delete = [key for key in self.nodeweights if key in self.done_tasks and self.done_tasks[key]]
-                for key in delete:
-                    # print('{} is already done, removing from {}'.format(key, self.id))
-                    del self.nodeweights[key]
+        #TODO should we be allowed to change direction, or only do these checks in the idle state?
+        if (all(self.done_tasks.values())):
+            self.goal = self.start
+            self.state = States.MOVING
 
-            if (all(self.done_tasks.values())):
-                self.goal = self.start
+        if (self.see_dones):
+            delete = [key for key in self.nodeweights if key in self.done_tasks and self.done_tasks[key]]
+            for key in delete:
+                del self.nodeweights[key]
+                if (self.goal == key):
+                    self.state = States.IDLE
+
+        if (self.state == States.IDLE):
+            # if (self.see_dones):
+            #     delete = [key for key in self.nodeweights if key in self.done_tasks and self.done_tasks[key]]
+            #     for key in delete:
+            #         del self.nodeweights[key]
+
+            # if (all(self.done_tasks.values())):
+            #     self.goal = self.start
+            # else:
+            # decide where to go
+            num = np.random.rand()
+            weights = self.calc_nodeweights()
+            if (num < self.eps):
+                self.goal = np.random.choice(list(weights.keys()))
             else:
-                # decide where to go
-                num = np.random.rand()
-                weights = self.calc_nodeweights()
-                if (num < self.eps):
-                    self.goal = np.random.choice(list(weights.keys()))
-                else:
-                    goal_ind = np.argmax(list(weights.values()))
-                    self.goal = list(weights.keys())[goal_ind]
+                goal_ind = np.argmax(list(weights.values()))
+                self.goal = list(weights.keys())[goal_ind]
             self.state = States.MOVING
 
             print('{} moving towards {} {}'.format(self.id, self.goal, self.graph.nodes[self.goal]['pos']))
