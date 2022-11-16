@@ -84,6 +84,7 @@ class GameLoop():
             plt.scatter(x, y, label='agent {}'.format(agent.id), s=1)
         plt.legend()
         # plt.show()
+        plt.title('score = {}'.format(self.minmax()))
         plt.savefig('graph_{}.png'.format(self.id))
         plt.close()
 
@@ -92,8 +93,9 @@ class GameLoop():
         for agent in self.agents:
             cost += len(agent.travel_hist)
         self.update_global_done_tasks()
-        if (not all(self.done_tasks.values())):
-            cost += params.INCOMPLETE_PENALTY
+        cost += params.INCOMPLETE_PENALTY*len([x for x in self.done_tasks.values() if not x])
+        # if (not all(self.done_tasks.values())):
+        #     cost += params.INCOMPLETE_PENALTY
         return cost
 
     def minmax(self):
@@ -103,6 +105,7 @@ class GameLoop():
             if (cost > max_cost):
                 max_cost = cost
         self.update_global_done_tasks()
-        if (not all(self.done_tasks.values())):
-            max_cost += params.INCOMPLETE_PENALTY
+        max_cost += params.INCOMPLETE_PENALTY*len([x for x in self.done_tasks.values() if not x])
+        # if (not all(self.done_tasks.values())):
+        #     max_cost += params.INCOMPLETE_PENALTY
         return max_cost

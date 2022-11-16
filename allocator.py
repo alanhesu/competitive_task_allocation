@@ -24,6 +24,9 @@ class Allocator:
 
         # initialie the GA class
 
+        # initialize data logging
+        self.scores_hist = []
+
     def allocate(self):
         # randomly initialize nodeweights
         nodeweights_pop = self.init_nodeweights()
@@ -43,17 +46,16 @@ class Allocator:
                     scores[i] = gameloop.total_cost()
                 elif (self.metric == 'minmax'):
                     scores[i] = gameloop.minmax()
-                print(gameloop.total_cost())
-                print(gameloop.minmax())
 
                 sys.stdout.flush()
 
             # run GA to get new nodeweights
 
 
-            print(list(nodeweights_pop.values())[0].shape)
+            # print(list(nodeweights_pop.values())[0].shape)
             #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
-            print(scores.shape)
+            self.scores_hist.append(copy.deepcopy(scores))
+            print(np.mean(scores), scores)
 
             elites  = self.selection_pair(nodeweights_pop,scores) # elites survive
             new_population = copy.deepcopy(elites)
@@ -64,7 +66,7 @@ class Allocator:
                     #parents = np.array([parent_a, parent_b])
                     # print('parentA', parent_a)
                     # print('parentB', parent_b)
-                    child = self.crossover(parent_a, parent_b)
+                    child = self.crossover_vert(parent_a, parent_b)
                     # print(child)
                     new_population.append(child)
                 else:
@@ -84,6 +86,8 @@ class Allocator:
             '''
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
 
+        self.plot_data()
+
     def init_nodeweights(self):
         nodeweights_pop = {}
         interval = int(len(list(self.graph.nodes))/self.num_agents)
@@ -93,6 +97,18 @@ class Allocator:
                 nodeweights_pop[gameloop.id][:,gameloop.start] = params.START_WEIGHT
         return nodeweights_pop
 
+    def plot_data(self):
+        scores_hist = np.stack(self.scores_hist, axis=0)
+        # reassign outlier values to make plot easier to read
+        # scores_hist[scores_hist > params.INCOMPLETE_PENALTY] = np.mean(scores_hist, axis=1)
+
+        plt.figure()
+        plt.plot(np.mean(scores_hist, axis=1), label='average')
+        plt.plot(np.min(scores_hist, axis=1), label='min')
+        plt.legend(loc='best')
+        plt.savefig('score_hist.png')
+        plt.close()
+
     # select agents that survive to next generation based on fitness, number based on num_elite parameter
     # explore: roulette, fittest half, random
     # Returns: list of surviving agents
@@ -100,8 +116,8 @@ class Allocator:
         ranked_scores = [sorted(scores).index(x) for x in scores]
         elite_agents = []
         for _ in range(self.num_elite):
-            elite_idx = ranked_scores.index(max(ranked_scores))
-            ranked_scores[elite_idx] = -1
+            elite_idx = ranked_scores.index(min(ranked_scores))
+            ranked_scores[elite_idx] = np.inf
             elite_agents.append(pop_weights[elite_idx])
 
         return elite_agents
@@ -137,6 +153,13 @@ class Allocator:
         #output[y==test_line] = ab_mean[y==test_line] # assign coords on line to "interpolation"
         return output
 
+    def crossover_vert(self, parentA, parentB):
+        child = np.empty(parentA.shape)
+        split_ind = int(parentA.shape[1]/2)
+        child[:,0:split_ind] = parentA[:,0:split_ind]
+        child[:,split_ind:] = parentB[:,split_ind:]
+
+        return child
 
     def mutation(self, parent):
         # A function to be applied to the array

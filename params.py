@@ -1,8 +1,8 @@
 # problem size
 NUM_NODES = 10
-NUM_AGENTS = 10
-NUM_ELITE = 5
-POPSIZE = 10
+NUM_AGENTS = 2
+NUM_ELITE = 10
+POPSIZE = 20
 
 # observability params
 GLOBAL_DONES = False # set to true: all agents update their done_tasks list from global information
@@ -14,14 +14,14 @@ EDGE_MULT = 2 # randomly multiply edge weight by up to this amount
 
 # agent params
 EPSILON = 0 # epsilon-greedy
-GAMMA = 1 # weight decay
+GAMMA = .999 # weight decay
 WEIGHT_ALPHA = 0 # distance score weight
 WEIGHT_BETA = 1 # node score weight
-START_WEIGHT = 0 # initial nodeweight for returning to start. Set to 1 to make it random
+START_WEIGHT = .1 # initial nodeweight for returning to start. Set to 1 to make it random
 
 # GA hyperparams
 MAX_ITER = 20
-OPERATOR_THRESHOLD = 0.7 # crossover for less than threshold, mutation for >=
-MUTATION_RATE = 0.2 # note this and operator threshold DO NOT NEED TO ADD TO 1
-METRIC = 'total' # total or minmax
-INCOMPLETE_PENALTY = -1e10
+OPERATOR_THRESHOLD = .7 # crossover for less than threshold, mutation for >=
+MUTATION_RATE = 0.15 # note this and operator threshold DO NOT NEED TO ADD TO 1
+METRIC = 'minmax' # total or minmax
+INCOMPLETE_PENALTY = 1e2
