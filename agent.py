@@ -125,6 +125,8 @@ class Agent:
         # return [dx, dy]
         vector = (self.graph.nodes[self.goal]['pos'] - self.position)/np.linalg.norm(self.graph.nodes[self.goal]['pos'] - self.position)
         edge = tuple(sorted([self.goal, self.prev_node]))
+        if (edge[0] == 0 and edge[1] == 0):
+            edge = (0, 1) # hack a fix to an edge case
         edgemult = self.graph.edges[edge]['mult']
 
         dX = self.speed*vector/edgemult
