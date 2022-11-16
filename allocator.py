@@ -56,9 +56,9 @@ class Allocator:
             print(scores.shape)
 
             elites  = self.selection_pair(nodeweights_pop,scores) # elites survive
-            new_population = [elites]
-            while len(new_population) <= params.POPSIZE:
-                operator = 0.9#random()
+            new_population = copy.deepcopy(elites)
+            while len(new_population) < params.POPSIZE:
+                operator = random()
                 if operator < params.OPERATOR_THRESHOLD:
                     parent_a, parent_b = sample(elites, k=2)     # only elites chosen as parents, change later
                     #parents = np.array([parent_a, parent_b])
@@ -75,7 +75,8 @@ class Allocator:
                     # print(parent)
                     # print(child)
             print(np.array(new_population))
-            return new_population
+            for i, key in enumerate(nodeweights_pop):
+                nodeweights_pop[key] = new_population[i]
             '''
             sort scores and the highest two scores (of games) are kept, others discarded
             until rest of discarded games (len scores - 2) are filled, crossover the two games until only 1 empty game left

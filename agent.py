@@ -56,7 +56,7 @@ class Agent:
                 self.goal = list(weights.keys())[goal_ind]
             self.state = States.MOVING
 
-            print('{} moving towards {} {}'.format(self.id, self.goal, self.graph.nodes[self.goal]['pos']))
+            # print('{} moving towards {} {}'.format(self.id, self.goal, self.graph.nodes[self.goal]['pos']))
 
         elif (self.state == States.MOVING):
             # move towards goal at a speed defined by self.speed
