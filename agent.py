@@ -46,14 +46,6 @@ class Agent:
                     self.state = States.IDLE
 
         if (self.state == States.IDLE):
-            # if (self.see_dones):
-            #     delete = [key for key in self.nodeweights if key in self.done_tasks and self.done_tasks[key]]
-            #     for key in delete:
-            #         del self.nodeweights[key]
-
-            # if (all(self.done_tasks.values())):
-            #     self.goal = self.start
-            # else:
             # decide where to go
             num = np.random.rand()
             weights = self.calc_nodeweights()
@@ -139,7 +131,6 @@ class Agent:
         return dX
 
     def calc_nodeweights(self):
-        #TODO: Don't decay the start node weight?
         weights = copy.deepcopy(self.nodeweights)
         for key in weights:
             weight = weights[key]
@@ -147,7 +138,11 @@ class Agent:
             # scale the distance score
             scaled_dist = (self.max_dist - dist)/self.max_dist
 
-            weight = self.alpha*scaled_dist + self.beta*self.gamma**self.time*weight
+            # don't decay the start node weight
+            if (key == self.start):
+                weight = self.alpha*scaled_dist + self.beta*weight
+            else:
+                weight = self.alpha*scaled_dist + self.beta*self.gamma**self.time*weight
             weights[key] = weight
 
         return weights
