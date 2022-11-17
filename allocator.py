@@ -10,10 +10,11 @@ import matplotlib.pyplot as plt
 import params
 
 class Allocator:
-    def __init__(self, graph=None, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS, num_elite=params.NUM_ELITE, metric=params.METRIC):
+    def __init__(self, graph=None, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS, num_parent=params.NUM_PARENT, num_elite=params.NUM_ELITE, metric=params.METRIC):
         self.graph = graph
         self.popsize = popsize
         self.num_agents = num_agents
+        self.num_parent = num_parent
         self.num_elite = num_elite
         self.metric = metric
         # initialize the gameloop
@@ -58,7 +59,7 @@ class Allocator:
             print(np.mean(scores), scores)
 
             elites  = self.selection_pair(nodeweights_pop,scores) # elites survive
-            new_population = copy.deepcopy(elites)
+            new_population = copy.deepcopy(elites)[0:self.num_elite]
             while len(new_population) < params.POPSIZE:
                 operator = random()
                 if operator < params.OPERATOR_THRESHOLD:
@@ -72,7 +73,7 @@ class Allocator:
                 else:
                     parent = choice(elites)
                     # print(parent.shape)
-                    child = self.mutation(parent)
+                    child = self.mutation_swap(parent)
                     new_population.append(child)
                     # print(parent)
                     # print(child)
@@ -115,7 +116,7 @@ class Allocator:
     def selection_pair(self, pop_weights, scores):
         ranked_scores = [sorted(scores).index(x) for x in scores]
         elite_agents = []
-        for _ in range(self.num_elite):
+        for _ in range(self.num_parent):
             elite_idx = ranked_scores.index(min(ranked_scores))
             ranked_scores[elite_idx] = np.inf
             elite_agents.append(pop_weights[elite_idx])
@@ -155,7 +156,8 @@ class Allocator:
 
     def crossover_vert(self, parentA, parentB):
         child = np.empty(parentA.shape)
-        split_ind = int(parentA.shape[1]/2)
+        # split_ind = int(parentA.shape[1]/2)
+        split_ind = np.random.randint(1, parentA.shape[1]-1)
         child[:,0:split_ind] = parentA[:,0:split_ind]
         child[:,split_ind:] = parentB[:,split_ind:]
 
@@ -172,3 +174,13 @@ class Allocator:
         mute = np.vectorize(mutate)
         child = mute(parent)
         return child
+
+    def mutation_swap(self, parent):
+        inds = np.arange(0, parent.shape[1])
+        for r in range(0, parent.shape[0]):
+            ind_pair = np.random.choice(inds, size=2, replace=False)
+            temp = parent[r,ind_pair[0]]
+            parent[r,ind_pair[0]] = parent[r,ind_pair[1]]
+            parent[r,ind_pair[1]] = temp
+
+        return parent
