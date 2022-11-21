@@ -89,6 +89,8 @@ class Allocator:
 
         self.plot_data()
 
+        return np.min(np.array(self.scores_hist))
+
     def init_nodeweights(self):
         nodeweights_pop = {}
         interval = int(len(list(self.graph.nodes))/self.num_agents)

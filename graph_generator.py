@@ -1,6 +1,8 @@
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
+import json
+import argparse
 
 from gameloop import GameLoop
 from agent import euclidean
@@ -36,4 +38,36 @@ def generate_random_graph(num_nodes, edge_mult):
 
     return G
 
-nx.write_gpickle(generate_random_graph(params.NUM_NODES, params.EDGE_MULT), 'randgraph.gpickle')
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (np.ndarray,)):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+def write_graph(G, fname):
+    G_dict = nx.node_link_data(G)
+    json_object = json.dumps(G_dict, indent=4, cls=NumpyEncoder)
+    with open(fname, 'w') as f:
+        f.write(json_object)
+
+def read_graph(fname):
+    with open(fname, 'r') as f:
+        dat = json.load(f)
+
+    for node in dat['nodes']:
+        node['pos'] = np.array(node['pos'])
+
+    G = nx.node_link_graph(dat)
+
+    return G
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--nodes', type=int, required=True)
+    parser.add_argument('--edgemult', type=float, required=True)
+    parser.add_argument('--file', type=str, required=True)
+
+    args = parser.parse_args()
+
+    G = generate_random_graph(args.nodes, args.edgemult)
+    write_graph(G, args.file)
