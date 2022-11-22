@@ -101,14 +101,18 @@ class Allocator:
                 nodeweights_pop[gameloop.id][:,gameloop.start] = params.START_WEIGHT
         return nodeweights_pop
 
-    def plot_data(self, fname=None):
+    def get_mean_score_hist(self):
         scores_hist = np.stack(self.scores_hist, axis=0)
-        # reassign outlier values to make plot easier to read
-        # scores_hist[scores_hist > params.INCOMPLETE_PENALTY] = np.mean(scores_hist, axis=1)
+        return np.mean(scores_hist, axis=1)
 
+    def get_min_score_hist(self):
+        scores_hist = np.stack(self.scores_hist, axis=0)
+        return np.min(scores_hist, axis=1)
+
+    def plot_data(self, fname=None):
         plt.figure()
-        plt.plot(np.mean(scores_hist, axis=1), label='average')
-        plt.plot(np.min(scores_hist, axis=1), label='min')
+        plt.plot(self.get_mean_score_hist(), label='average')
+        plt.plot(self.get_min_score_hist(), label='min')
         plt.legend(loc='best')
         if (fname is None):
             plt.savefig('score_hist.png')
