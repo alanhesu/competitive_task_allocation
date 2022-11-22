@@ -7,7 +7,7 @@ import params
 
 class GameLoop():
     def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1,
-                global_dones=params.GLOBAL_DONES, see_dones=params.SEE_DONES, plot=True):
+                global_dones=params.GLOBAL_DONES, see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT, plot=True):
         self.graph = graph
         self.num_agents = num_agents
         self.id = id
@@ -15,6 +15,8 @@ class GameLoop():
 
         self.global_dones = global_dones
         self.see_dones = see_dones
+        self.see_intent = see_intent
+
         if (start is None):
             self.start = list(self.graph.nodes)[0] #TODO just choosing the first node for now
         else:
@@ -29,11 +31,15 @@ class GameLoop():
                 if (agent.done):
                     continue
                 agent.step()
-                #TODO: update done tasks list and propogate for all agents
+
                 if (self.global_dones):
                     for key in self.done_tasks:
                         self.done_tasks[key] = self.done_tasks[key] or agent.get_done_tasks()[key]
                         agent.update_done_tasks(self.done_tasks)
+
+                if (self.see_intent):
+                    self.intents[agent] = agent.goal
+
                 self.agent_dones[agent.id] = agent.done
 
         if (self.plot):
@@ -41,18 +47,20 @@ class GameLoop():
 
     def reset(self):
         self.done_tasks = {x: False for x in self.graph.nodes if x != self.start}
+        self.intents = {x: None for x in self.agents}
         # del self.done_tasks[self.start]
         self.agent_dones = {}
         for agent in self.agents:
             agent.reset()
             self.agent_dones[agent.id] = agent.done
+            agent.intents = self.intents
 
     def init_agents(self):
         self.agents = []
         for i in range(0, self.num_agents):
             nodeweights = {x: np.random.rand() for x in self.graph.nodes}
             # del nodeweights[self.start]
-            newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights, see_dones=self.see_dones)
+            newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights, see_dones=self.see_dones, see_intent = self.see_intent)
             self.agents.append(newagent)
 
     def set_nodeweights(self, nodeweights_arr):
@@ -84,7 +92,8 @@ class GameLoop():
             plt.scatter(x, y, label='agent {}'.format(agent.id), s=1)
         plt.legend()
         # plt.show()
-        plt.title('score = {}'.format(self.minmax()))
+        score = params.PHI*self.minmax() + (1 - params.PHI)*self.total_cost()
+        plt.title('score = {}'.format(score))
         plt.savefig('graph_{}.png'.format(self.id))
         plt.close()
 

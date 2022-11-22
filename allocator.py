@@ -10,13 +10,13 @@ import matplotlib.pyplot as plt
 import params
 
 class Allocator:
-    def __init__(self, graph=None, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS, num_parent=params.NUM_PARENT, num_elite=params.NUM_ELITE, metric=params.METRIC):
+    def __init__(self, graph=None, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS, num_parent=params.NUM_PARENT, num_elite=params.NUM_ELITE, phi=params.PHI):
         self.graph = graph
         self.popsize = popsize
         self.num_agents = num_agents
         self.num_parent = num_parent
         self.num_elite = num_elite
-        self.metric = metric
+        self.phi = phi
         # initialize the gameloop
         self.gameloops = []
         for i in range(0, self.popsize):
@@ -43,10 +43,11 @@ class Allocator:
                 gameloop.loop()
 
                 # calculate score based on metric
-                if (self.metric == 'total'):
-                    scores[i] = gameloop.total_cost()
-                elif (self.metric == 'minmax'):
-                    scores[i] = gameloop.minmax()
+                scores[i] = self.phi*gameloop.minmax() + (1 - self.phi)*gameloop.total_cost()
+                # if (self.metric == 'total'):
+                #     scores[i] = gameloop.total_cost()
+                # elif (self.metric == 'minmax'):
+                #     scores[i] = gameloop.minmax()
 
                 sys.stdout.flush()
 
@@ -73,7 +74,7 @@ class Allocator:
                 else:
                     parent = choice(elites)
                     # print(parent.shape)
-                    child = self.mutation_swap(parent)
+                    child = self.mutation(parent)
                     new_population.append(child)
                     # print(parent)
                     # print(child)
@@ -89,7 +90,7 @@ class Allocator:
 
         self.plot_data()
 
-        return np.min(np.array(self.scores_hist))
+        return np.min(self.scores_hist[-1])
 
     def init_nodeweights(self):
         nodeweights_pop = {}

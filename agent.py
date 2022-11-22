@@ -13,7 +13,7 @@ class States(Enum):
 class Agent:
     def __init__(self, graph=None, start=None, id=1, obs=[], speed=1, eps=params.EPSILON, nodeweights=None,
                 gamma=params.GAMMA, alpha=params.WEIGHT_ALPHA, beta=params.WEIGHT_BETA,
-                see_dones=params.SEE_DONES):
+                see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT):
         self.graph = graph # a networkx graph
         self.start = start # starting node in the graph
         self.id = id
@@ -24,6 +24,7 @@ class Agent:
         self.alpha = alpha
         self.beta = beta
         self.see_dones = see_dones
+        self.see_intent = see_intent
         self.nodeweights_base = nodeweights # a dict of node:weight pairs
 
         # calculate the max distance as the diagonal of the graph bounding box so we can scale
@@ -37,18 +38,45 @@ class Agent:
         if (all(self.done_tasks.values())):
             self.goal = self.start
             self.state = States.MOVING
+            # print('{} moving towards {} {}'.format(self.id, self.goal, self.graph.nodes[self.goal]['pos']))
 
         if (self.see_dones):
             delete = [key for key in self.nodeweights if key in self.done_tasks and self.done_tasks[key]]
+            # remove from nodeweights if the task has already been done
             for key in delete:
                 del self.nodeweights[key]
                 if (self.goal == key):
                     self.state = States.IDLE
 
+                # dont forget to remove it from off_limits as well
+                if (key in self.off_limits):
+                    self.off_limits.remove(key)
+
+        if (self.see_intent):
+            for agent in self.intents:
+                other_goal = self.intents[agent]
+                if (agent.id != self.id
+                    and other_goal not in self.off_limits
+                    and other_goal is not None
+                    and other_goal == self.goal
+                    and other_goal != self.start):
+                    # if we're farther from the goal by euclidean distance, go somewhere else by setting this as off limits temporarily
+                    print(self.intents)
+                    other_dist = euclidean(agent.position, self.graph.nodes[other_goal]['pos'])
+                    self_dist = euclidean(self.position, self.graph.nodes[self.goal]['pos'])
+                    print(self.id, other_dist, self_dist)
+                    if (self_dist > other_dist):
+                        self.state = States.IDLE
+                        self.off_limits.append(other_goal)
+                        print(self.off_limits)
+                        break
+
         if (self.state == States.IDLE):
             # decide where to go
             num = np.random.rand()
             weights = self.calc_nodeweights()
+            for key in self.off_limits: # remove off limit nodes from possible choices
+                del weights[key]
             if (num < self.eps):
                 self.goal = np.random.choice(list(weights.keys()))
             else:
@@ -66,11 +94,11 @@ class Agent:
             else:
                 dX = self.move_pretend()
             dist = euclidean(self.position, self.graph.nodes[self.goal]['pos'])
-            if (np.linalg.norm(dX) >= dist):
+            if (np.linalg.norm(dX) >= dist): # we travel far enough to reach the goal
                 # print('{} at {}'.format(self.id, self.goal))
                 self.prev_node = self.goal
-                # we travel far enough to reach the goal
                 self.position = self.graph.nodes[self.goal]['pos']
+                self.off_limits = [] # reset the list of off limits nodes
                 if (self.goal == self.start):
                     # at home
                     self.state = States.IDLE
@@ -95,6 +123,7 @@ class Agent:
 
         # check the done condition
         if (np.allclose(self.position, self.graph.nodes[self.start]['pos'])
+            and self.goal == self.start
             and self.time > 1):
             self.done = True
 
@@ -108,6 +137,7 @@ class Agent:
         self.time = 0
         self.travel_hist = [] # a list of where it's been
         self.done = False
+        self.off_limits = [] # a list of nodes that are off limits
 
     def update_done_tasks(self, task_info):
         # set agent's done task list to union of self.done_tasks and task_info
