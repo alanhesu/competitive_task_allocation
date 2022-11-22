@@ -7,7 +7,7 @@ import params
 
 class GameLoop():
     def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1,
-                global_dones=params.GLOBAL_DONES, see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT, plot=True):
+                global_dones=params.GLOBAL_DONES, see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT, plot=False):
         self.graph = graph
         self.num_agents = num_agents
         self.id = id
@@ -74,7 +74,7 @@ class GameLoop():
             for key in self.done_tasks:
                 self.done_tasks[key] = self.done_tasks[key] or agent.get_done_tasks()[key]
 
-    def plot_graph(self):
+    def plot_graph(self, fname=None):
         plt.figure()
         # plot nodes
         nodes = nx.get_node_attributes(self.graph, 'pos')
@@ -94,7 +94,10 @@ class GameLoop():
         # plt.show()
         score = params.PHI*self.minmax() + (1 - params.PHI)*self.total_cost()
         plt.title('score = {}'.format(score))
-        plt.savefig('graph_{}.png'.format(self.id))
+        if (fname is None):
+            plt.savefig('graph_{}.png'.format(self.id))
+        else:
+            plt.savefig(fname)
         plt.close()
 
     def total_cost(self):

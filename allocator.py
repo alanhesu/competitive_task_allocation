@@ -101,7 +101,7 @@ class Allocator:
                 nodeweights_pop[gameloop.id][:,gameloop.start] = params.START_WEIGHT
         return nodeweights_pop
 
-    def plot_data(self):
+    def plot_data(self, fname=None):
         scores_hist = np.stack(self.scores_hist, axis=0)
         # reassign outlier values to make plot easier to read
         # scores_hist[scores_hist > params.INCOMPLETE_PENALTY] = np.mean(scores_hist, axis=1)
@@ -110,7 +110,10 @@ class Allocator:
         plt.plot(np.mean(scores_hist, axis=1), label='average')
         plt.plot(np.min(scores_hist, axis=1), label='min')
         plt.legend(loc='best')
-        plt.savefig('score_hist.png')
+        if (fname is None):
+            plt.savefig('score_hist.png')
+        else:
+            plt.savefig(fname)
         plt.close()
 
     # select agents that survive to next generation based on fitness, number based on num_elite parameter

@@ -6,8 +6,8 @@ NUM_ELITE = 2
 POPSIZE = 20
 
 # observability params
-GLOBAL_DONES = True # set to true: all agents update their done_tasks list from global information
-SEE_DONES = True # set to true: an agent will not select a goal if it is already done, must have GLOBAL_DONES=True
+GLOBAL_DONES = False # set to true: all agents update their done_tasks list from global information
+SEE_DONES = False # set to true: an agent will not select a goal if it is already done, must have GLOBAL_DONES=True
 SEE_INTENT = False # set to true: an agent will not select a goal if another is already moving towards it
 #TODO: communication radius
 #TODO: agents communicate with each other their done tasks/goals instead of globally
