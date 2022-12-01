@@ -66,11 +66,12 @@ class Allocator:
                 if operator < params.OPERATOR_THRESHOLD:
                     parent_a, parent_b = sample(elites, k=2)     # only elites chosen as parents, change later
                     #parents = np.array([parent_a, parent_b])
-                    # print('parentA', parent_a)
-                    # print('parentB', parent_b)
-                    child = self.crossover_vert(parent_a, parent_b)
-                    # print(child)
-                    new_population.append(child)
+                    
+                    #child = self.crossover_vert(parent_a, parent_b)
+                    childA,childB = self.crossover_uniform(parent_a, parent_b)
+                    
+                    new_population.append(childA)
+                    new_population.append(childB)
                 else:
                     parent = choice(elites)
                     # print(parent.shape)
@@ -78,7 +79,7 @@ class Allocator:
                     new_population.append(child)
                     # print(parent)
                     # print(child)
-            print(np.array(new_population))
+            #print(np.array(new_population))
             for i, key in enumerate(nodeweights_pop):
                 nodeweights_pop[key] = new_population[i]
             '''
@@ -172,6 +173,46 @@ class Allocator:
         child[:,split_ind:] = parentB[:,split_ind:]
 
         return child
+
+    def crossover_single(self, parentA, parentB):
+        len = parentA.shape
+        childA = np.empty(len)
+        childB = np.empty(len)
+        split_ind = np.random.randint(1, len[1]-1)
+        
+        childA[:,0:split_ind] = parentA[:,0:split_ind]
+        childA[:,split_ind:] = parentB[:,split_ind:]
+
+        childB[:,0:split_ind] = parentB[:,0:split_ind]
+        childB[:,split_ind:] = parentA[:, split_ind:]
+
+        return childA, childB
+
+    def crossover_two_point(self, parentA, parentB):
+        len = parentA.shape
+        childA = np.empty(len)
+        childB = np.empty(len)
+        left_pt = np.random.randint(1, len[1]-1)
+        right_pt = np.random.randint(left_pt, len[1])
+            
+        childA = np.hstack((parentA[:,0:left_pt], parentB[:,left_pt:right_pt], parentA[:,right_pt:]))
+        childB = np.hstack((parentB[:,0:left_pt], parentA[:,left_pt:right_pt], parentB[:,right_pt:]))
+
+        return childA, childB 
+
+    def crossover_uniform(self, parentA, parentB):
+        len = parentA.shape
+        bit_array = np.random.choice([0, 1], len)
+        childA = np.where(bit_array, parentA, parentB)
+        childB = np.where(1-bit_array, parentA, parentB)
+                
+        # print('\nparentA', parentA)
+        # print('parentB', parentB)
+        # print('bitarray', bit_array, '1-bitarray', 1-bit_array)
+        # print('childA', childA)
+        # print('childB', childB)
+        return childA, childB
+
 
     def mutation(self, parent):
         # A function to be applied to the array
