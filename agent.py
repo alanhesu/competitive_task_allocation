@@ -59,16 +59,14 @@ class Agent:
                     and other_goal not in self.off_limits
                     and other_goal is not None
                     and other_goal == self.goal
-                    and other_goal != self.start):
+                    and other_goal != self.start
+                    and other_goal in self.nodeweights):
                     # if we're farther from the goal by euclidean distance, go somewhere else by setting this as off limits temporarily
-                    print(self.intents)
                     other_dist = euclidean(agent.position, self.graph.nodes[other_goal]['pos'])
                     self_dist = euclidean(self.position, self.graph.nodes[self.goal]['pos'])
-                    print(self.id, other_dist, self_dist)
                     if (self_dist > other_dist):
                         self.state = States.IDLE
                         self.off_limits.append(other_goal)
-                        print(self.off_limits)
                         break
 
         if (self.state == States.IDLE):

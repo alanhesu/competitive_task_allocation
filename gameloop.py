@@ -7,15 +7,17 @@ import params
 
 class GameLoop():
     def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1,
-                global_dones=params.GLOBAL_DONES, see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT, plot=False):
+                comm_dones=params.COMM_DONES, see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT,
+                comm_range=params.COMM_RANGE, plot=False):
         self.graph = graph
         self.num_agents = num_agents
         self.id = id
         self.plot = plot
 
-        self.global_dones = global_dones
+        self.comm_dones = comm_dones
         self.see_dones = see_dones
         self.see_intent = see_intent
+        self.comm_range = comm_range
 
         if (start is None):
             self.start = list(self.graph.nodes)[0] #TODO just choosing the first node for now
@@ -32,13 +34,25 @@ class GameLoop():
                     continue
                 agent.step()
 
-                if (self.global_dones):
-                    for key in self.done_tasks:
-                        self.done_tasks[key] = self.done_tasks[key] or agent.get_done_tasks()[key]
-                        agent.update_done_tasks(self.done_tasks)
+                for other_agent in self.agents:
+                    # loop through other agents and communicate if they're in range
+                    if (other_agent.id == agent.id):
+                        continue # don't communicate with yourself
+                    if (self.comm_dones and euclidean(other_agent.position, agent.position) <= self.comm_range):
+                        agent.update_done_tasks(other_agent.done_tasks)
+                    if (self.see_intent):
+                        if (euclidean(other_agent.position, agent.position) <= self.comm_range):
+                            agent.intents[other_agent] = other_agent.goal
+                        else:
+                            agent.intents[other_agent] = None # forget the other agent's intent if you're out of range
 
-                if (self.see_intent):
-                    self.intents[agent] = agent.goal
+                # if (self.comm_dones):
+                #     for key in self.done_tasks:
+                #         self.done_tasks[key] = self.done_tasks[key] or agent.get_done_tasks()[key]
+                #         agent.update_done_tasks(self.done_tasks)
+
+                # if (self.see_intent):
+                #     self.intents[agent] = agent.goal
 
                 self.agent_dones[agent.id] = agent.done
 
@@ -53,7 +67,7 @@ class GameLoop():
         for agent in self.agents:
             agent.reset()
             self.agent_dones[agent.id] = agent.done
-            agent.intents = self.intents
+            agent.intents = copy.copy(self.intents)
 
     def init_agents(self):
         self.agents = []

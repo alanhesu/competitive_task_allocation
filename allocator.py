@@ -57,7 +57,7 @@ class Allocator:
             # print(list(nodeweights_pop.values())[0].shape)
             #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             self.scores_hist.append(copy.deepcopy(scores))
-            print(np.mean(scores), scores)
+            # print(np.mean(scores), scores)
 
             elites  = self.selection_pair(nodeweights_pop,scores) # elites survive
             new_population = copy.deepcopy(elites)[0:self.num_elite]
@@ -78,7 +78,7 @@ class Allocator:
                     new_population.append(child)
                     # print(parent)
                     # print(child)
-            print(np.array(new_population))
+            # print(np.array(new_population))
             for i, key in enumerate(nodeweights_pop):
                 nodeweights_pop[key] = new_population[i]
             '''
