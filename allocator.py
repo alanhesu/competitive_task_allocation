@@ -57,28 +57,26 @@ class Allocator:
             # print(list(nodeweights_pop.values())[0].shape)
             #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             self.scores_hist.append(copy.deepcopy(scores))
-            # print(np.mean(scores), scores)
+            print(np.mean(scores), scores)
 
             elites  = self.selection_pair(nodeweights_pop,scores) # elites survive
             new_population = copy.deepcopy(elites)[0:self.num_elite]
             while len(new_population) < params.POPSIZE:
                 operator = random()
                 if operator < params.OPERATOR_THRESHOLD:
-                    parent_a, parent_b = sample(elites, k=2)     # only elites chosen as parents, change later
-                    #parents = np.array([parent_a, parent_b])
+                    parent_a, parent_b = sample(elites, k=2)
 
-                    #child = self.crossover_vert(parent_a, parent_b)
-                    childA,childB = self.crossover_uniform(parent_a, parent_b)
-
+                    childA, childB = self.crossover(parent_a, parent_b)
+                    
                     new_population.append(childA)
-                    new_population.append(childB)
+                    if len(new_population) < params.POPSIZE:
+                        new_population.append(childB)
+
                 else:
                     parent = choice(elites)
-                    # print(parent.shape)
                     child = self.mutation(parent)
                     new_population.append(child)
-                    # print(parent)
-                    # print(child)
+                    
             #print(np.array(new_population))
             for i, key in enumerate(nodeweights_pop):
                 nodeweights_pop[key] = new_population[i]
@@ -134,52 +132,30 @@ class Allocator:
 
         return elite_agents
 
-    # def single_point_crossover(self, node_a, node_b):
-    #     length = len(node_a)
-    #     if length < 2:
-    #         return node_a, node_b
-
-    #     p = randint(1, length - 1)
-    #     return node_a[0:p] + node_b[p:], node_b[0:p] + node_a[p:]
+## Crossover Functions
     def crossover(self, parentA, parentB):
-        sz = parentA.shape
-        # helper arrays for coordinate system
-        x = np.ones(sz)
-        print(x.shape)
-        print(sz[0])
-        x[:,:] = np.arange(sz[0])
 
-        y = np.ones(sz)
-        y[:,:] = sz[1]-np.arange(sz[1]).reshape(sz[1],1) # 100- to invert y-axis
-
-        # linear function
-        def linfunc(x, m, n):
-            return x*m + n
-
-        #ab_mean = (parentA+parentB)/2
-        test_line = linfunc(x, -4, 150) #  y = {2nd argument}x + {3rd argument}
-        output = np.zeros_like(parentA)
-        output[y>test_line] = parentA[y>test_line] # assign above line to a
-        output[y<test_line] = parentB[y<test_line] # assign below line to b
-        output[y==test_line] = parentA[y==test_line] # assign coords on line to a
-        #output[y==test_line] = ab_mean[y==test_line] # assign coords on line to "interpolation"
-        return output
-
-    def crossover_vert(self, parentA, parentB):
-        child = np.empty(parentA.shape)
-        # split_ind = int(parentA.shape[1]/2)
-        split_ind = np.random.randint(1, parentA.shape[1]-1)
-        child[:,0:split_ind] = parentA[:,0:split_ind]
-        child[:,split_ind:] = parentB[:,split_ind:]
-
-        return child
+        if params.CROSSOVER_FUNCTION == 'SINGLE':
+            return self.crossover_single(parentA, parentB)
+        elif params.CROSSOVER_FUNCTION == "TWO":
+            return self.crossover_two_point(parentA, parentB)
+        elif params.CROSSOVER_FUNCTION == "UNIFORM": 
+            return self.crossover_uniform(parentA, parentB)
+        else: #MIXED
+            rand_select = np.random.rand()
+            if rand_select < (1/3):
+                return self.crossover_single(parentA, parentB)
+            elif rand_select > (2/3):
+                return self.crossover_two_point(parentA, parentB)
+            else:
+                return self.crossover_uniform(parentA, parentB)
 
     def crossover_single(self, parentA, parentB):
         len = parentA.shape
         childA = np.empty(len)
         childB = np.empty(len)
         split_ind = np.random.randint(1, len[1]-1)
-
+        
         childA[:,0:split_ind] = parentA[:,0:split_ind]
         childA[:,split_ind:] = parentB[:,split_ind:]
 
@@ -194,18 +170,18 @@ class Allocator:
         childB = np.empty(len)
         left_pt = np.random.randint(1, len[1]-1)
         right_pt = np.random.randint(left_pt, len[1])
-
+            
         childA = np.hstack((parentA[:,0:left_pt], parentB[:,left_pt:right_pt], parentA[:,right_pt:]))
         childB = np.hstack((parentB[:,0:left_pt], parentA[:,left_pt:right_pt], parentB[:,right_pt:]))
 
-        return childA, childB
+        return childA, childB 
 
     def crossover_uniform(self, parentA, parentB):
         len = parentA.shape
         bit_array = np.random.choice([0, 1], len)
         childA = np.where(bit_array, parentA, parentB)
         childB = np.where(1-bit_array, parentA, parentB)
-
+                
         # print('\nparentA', parentA)
         # print('parentB', parentB)
         # print('bitarray', bit_array, '1-bitarray', 1-bit_array)
@@ -213,15 +189,31 @@ class Allocator:
         # print('childB', childB)
         return childA, childB
 
-
+## Mutation Functions
     def mutation(self, parent):
-        # A function to be applied to the array
+        if params.MUTATION_FUNCTION == 'RESET':
+            return self.mutation_random_reset(parent)
+        elif params.MUTATION_FUNCTION == "SWAP":
+            return self.mutation_swap(parent)
+        elif params.CROSSOVER_FUNCTION == "INVERSION": 
+            return self.mutation_inversion(parent)
+        else: #MIXED
+            rand_select = np.random.rand()
+            if rand_select < (1/3):
+                return self.mutation_random_reset(parent)
+            elif rand_select > (2/3):
+                return self.mutation_swap(parent)
+            else:
+                return self.mutation_inversion(parent)
+
+    def mutation_random_reset(self, parent):
         def mutate(gene):
             temp = random()
-            if temp < params.MUTATION_RATE:
+            if temp < params.MUTATION_RATE: # TODO this value will need to be scaled dynamically
                 return random()
             else:
                 return gene
+
         mute = np.vectorize(mutate)
         child = mute(parent)
         return child
@@ -235,3 +227,11 @@ class Allocator:
             parent[r,ind_pair[1]] = temp
 
         return parent
+
+    def mutation_inversion(self, parent):
+        left_idx = randint(0, parent.shape[1]-2)
+        right_idx = randint(left_idx+1, parent.shape[1]-1)
+        for agent in range(parent.shape[0]):
+            slice = parent[agent, left_idx:right_idx]
+            parent[agent, left_idx:right_idx] = np.fliplr([slice])
+        return parent    
