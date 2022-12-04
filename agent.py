@@ -11,9 +11,19 @@ class States(Enum):
     HOMING = 4
 
 class Agent:
-    def __init__(self, graph=None, start=None, id=1, obs=[], speed=1, eps=params.EPSILON, nodeweights=None,
-                gamma=params.GAMMA, alpha=params.WEIGHT_ALPHA, beta=params.WEIGHT_BETA,
-                see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT):
+    def __init__(self,
+                graph=None,
+                start=None,
+                id=1,
+                obs=[],
+                speed=1,
+                eps=params.EPSILON,
+                nodeweights=None,
+                gamma=params.GAMMA,
+                alpha=params.WEIGHT_ALPHA,
+                beta=params.WEIGHT_BETA,
+                see_dones=params.SEE_DONES,
+                see_intent=params.SEE_INTENT):
         self.graph = graph # a networkx graph
         self.start = start # starting node in the graph
         self.id = id

@@ -6,18 +6,31 @@ import matplotlib.pyplot as plt
 import params
 
 class GameLoop():
-    def __init__(self, graph=None, num_agents=params.NUM_AGENTS, start=None, id=1,
-                comm_dones=params.COMM_DONES, see_dones=params.SEE_DONES, see_intent=params.SEE_INTENT,
-                comm_range=params.COMM_RANGE, plot=False):
+    def __init__(self,
+                graph=None,
+                num_agents=params.NUM_AGENTS,
+                start=None,
+                id=1,
+                comm_dones=params.COMM_DONES,
+                see_dones=params.SEE_DONES,
+                see_intent=params.SEE_INTENT,
+                comm_range=params.COMM_RANGE,
+                phi=params.PHI,
+                incomplete_penalty=params.INCOMPLETE_PENALTY,
+                plot=False,
+                agent_kwargs=None):
         self.graph = graph
         self.num_agents = num_agents
         self.id = id
         self.plot = plot
+        self.agent_kwargs = agent_kwargs
 
         self.comm_dones = comm_dones
         self.see_dones = see_dones
         self.see_intent = see_intent
         self.comm_range = comm_range
+        self.phi = phi
+        self.incomplete_penalty = incomplete_penalty
 
         if (start is None):
             self.start = list(self.graph.nodes)[0] #TODO just choosing the first node for now
@@ -74,7 +87,7 @@ class GameLoop():
         for i in range(0, self.num_agents):
             nodeweights = {x: np.random.rand() for x in self.graph.nodes}
             # del nodeweights[self.start]
-            newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights, see_dones=self.see_dones, see_intent = self.see_intent)
+            newagent = Agent(graph=self.graph, start=self.start, id=i, nodeweights=nodeweights, see_dones=self.see_dones, see_intent=self.see_intent, **self.agent_kwargs)
             self.agents.append(newagent)
 
     def set_nodeweights(self, nodeweights_arr):
@@ -106,7 +119,7 @@ class GameLoop():
             plt.scatter(x, y, label='agent {}'.format(agent.id), s=1)
         plt.legend()
         # plt.show()
-        score = params.PHI*self.minmax() + (1 - params.PHI)*self.total_cost()
+        score = self.phi*self.minmax() + (1 - self.phi)*self.total_cost()
         plt.title('score = {}'.format(score))
         if (fname is None):
             plt.savefig('graph_{}.png'.format(self.id))
@@ -119,9 +132,7 @@ class GameLoop():
         for agent in self.agents:
             cost += len(agent.travel_hist)
         self.update_global_done_tasks()
-        cost += params.INCOMPLETE_PENALTY*len([x for x in self.done_tasks.values() if not x])
-        # if (not all(self.done_tasks.values())):
-        #     cost += params.INCOMPLETE_PENALTY
+        cost += self.incomplete_penalty*len([x for x in self.done_tasks.values() if not x])
         return cost
 
     def minmax(self):
@@ -131,7 +142,5 @@ class GameLoop():
             if (cost > max_cost):
                 max_cost = cost
         self.update_global_done_tasks()
-        max_cost += params.INCOMPLETE_PENALTY*len([x for x in self.done_tasks.values() if not x])
-        # if (not all(self.done_tasks.values())):
-        #     max_cost += params.INCOMPLETE_PENALTY
+        max_cost += self.incomplete_penalty*len([x for x in self.done_tasks.values() if not x])
         return max_cost

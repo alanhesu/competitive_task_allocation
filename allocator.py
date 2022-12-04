@@ -11,17 +11,40 @@ import matplotlib.pyplot as plt
 import params
 
 class Allocator:
-    def __init__(self, graph=None, popsize=params.POPSIZE, num_agents=params.NUM_AGENTS, num_parent=params.NUM_PARENT, num_elite=params.NUM_ELITE, phi=params.PHI):
+    def __init__(self,
+                graph=None,
+                popsize=params.POPSIZE,
+                num_agents=params.NUM_AGENTS,
+                num_parent=params.NUM_PARENT,
+                num_elite=params.NUM_ELITE,
+                phi=params.PHI,
+                max_iter=params.MAX_ITER,
+                operator_threshold=params.OPERATOR_THRESHOLD,
+                start_weight=params.START_WEIGHT,
+                mutation_rate=params.MUTATION_RATE,
+                crossover_function=params.CROSSOVER_FUNCTION,
+                mutation_function=params.MUTATION_FUNCTION,
+                gameloop_kwargs=None,
+                agent_kwargs=None):
         self.graph = graph
         self.popsize = popsize
         self.num_agents = num_agents
         self.num_parent = num_parent
         self.num_elite = num_elite
         self.phi = phi
+        self.max_iter = max_iter
+        self.operator_threshold = operator_threshold
+        self.start_weight = start_weight
+        self.mutation_rate = mutation_rate
+        self.crossover_function = crossover_function
+        self.mutation_function = mutation_function
+        self.gameloop_kwargs = gameloop_kwargs
+        self.agent_kwargs = agent_kwargs
+
         # initialize the gameloop
         self.gameloops = []
         for i in range(0, self.popsize):
-            gameloop = GameLoop(graph=self.graph, num_agents=self.num_agents, id=i)
+            gameloop = GameLoop(graph=self.graph, num_agents=self.num_agents, id=i, agent_kwargs=agent_kwargs, **gameloop_kwargs)
             self.gameloops.append(gameloop)
 
         # initialie the GA class
@@ -36,7 +59,7 @@ class Allocator:
 
         starttime = time.time()
         # in a loop until convergence:
-        for iter in range(0, params.MAX_ITER):
+        for iter in range(0, self.max_iter):
             print('allocator iteration {}'.format(iter))
             # run the game loop n number of times to get n matrices of nodeweights
             for i, gameloop in enumerate(self.gameloops):
@@ -59,19 +82,19 @@ class Allocator:
             # print(list(nodeweights_pop.values())[0].shape)
             #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             self.scores_hist.append(copy.deepcopy(scores))
-            print(np.mean(scores), scores)
+            # print(np.mean(scores), scores)
 
             elites  = self.selection_pair(nodeweights_pop,scores) # elites survive
             new_population = copy.deepcopy(elites)[0:self.num_elite]
-            while len(new_population) < params.POPSIZE:
+            while len(new_population) < self.popsize:
                 operator = random()
-                if operator < params.OPERATOR_THRESHOLD:
+                if operator < self.operator_threshold:
                     parent_a, parent_b = sample(elites, k=2)
 
                     childA, childB = self.crossover(parent_a, parent_b)
 
                     new_population.append(childA)
-                    if len(new_population) < params.POPSIZE:
+                    if len(new_population) < self.popsize:
                         new_population.append(childB)
 
                 else:
@@ -103,8 +126,8 @@ class Allocator:
         interval = int(len(list(self.graph.nodes))/self.num_agents)
         for gameloop in self.gameloops:
             nodeweights_pop[gameloop.id] = np.random.rand(self.num_agents, len(list(self.graph.nodes)))
-            if (params.START_WEIGHT != 1):
-                nodeweights_pop[gameloop.id][:,gameloop.start] = params.START_WEIGHT
+            if (self.start_weight != 1):
+                nodeweights_pop[gameloop.id][:,gameloop.start] = self.start_weight
         return nodeweights_pop
 
     def get_mean_score_hist(self):
@@ -142,11 +165,11 @@ class Allocator:
 ## Crossover Functions
     def crossover(self, parentA, parentB):
 
-        if params.CROSSOVER_FUNCTION == 'SINGLE':
+        if self.crossover_function == 'SINGLE':
             return self.crossover_single(parentA, parentB)
-        elif params.CROSSOVER_FUNCTION == "TWO":
+        elif self.crossover_function == "TWO":
             return self.crossover_two_point(parentA, parentB)
-        elif params.CROSSOVER_FUNCTION == "UNIFORM":
+        elif self.crossover_function == "UNIFORM":
             return self.crossover_uniform(parentA, parentB)
         else: #MIXED
             rand_select = np.random.rand()
@@ -198,11 +221,11 @@ class Allocator:
 
 ## Mutation Functions
     def mutation(self, parent):
-        if params.MUTATION_FUNCTION == 'RESET':
+        if self.mutation_function == 'RESET':
             return self.mutation_random_reset(parent)
-        elif params.MUTATION_FUNCTION == "SWAP":
+        elif self.mutation_function == "SWAP":
             return self.mutation_swap(parent)
-        elif params.CROSSOVER_FUNCTION == "INVERSION":
+        elif self.mutation_function == "INVERSION":
             return self.mutation_inversion(parent)
         else: #MIXED
             rand_select = np.random.rand()
@@ -216,7 +239,7 @@ class Allocator:
     def mutation_random_reset(self, parent):
         def mutate(gene):
             temp = random()
-            if temp < params.MUTATION_RATE: # TODO this value will need to be scaled dynamically
+            if temp < self.mutation_rate: # TODO this value will need to be scaled dynamically
                 return random()
             else:
                 return gene
