@@ -3,6 +3,7 @@ import numpy as np
 import copy
 from random import choice, random, sample, randrange, randint
 import sys
+import time
 
 from agent import Agent, euclidean
 from gameloop import GameLoop
@@ -33,6 +34,7 @@ class Allocator:
         nodeweights_pop = self.init_nodeweights()
         scores = np.zeros(self.popsize)
 
+        starttime = time.time()
         # in a loop until convergence:
         for iter in range(0, params.MAX_ITER):
             print('allocator iteration {}'.format(iter))
@@ -67,7 +69,7 @@ class Allocator:
                     parent_a, parent_b = sample(elites, k=2)
 
                     childA, childB = self.crossover(parent_a, parent_b)
-                    
+
                     new_population.append(childA)
                     if len(new_population) < params.POPSIZE:
                         new_population.append(childB)
@@ -76,7 +78,7 @@ class Allocator:
                     parent = choice(elites)
                     child = self.mutation(parent)
                     new_population.append(child)
-                    
+
             #print(np.array(new_population))
             for i, key in enumerate(nodeweights_pop):
                 nodeweights_pop[key] = new_population[i]
@@ -89,7 +91,12 @@ class Allocator:
 
         self.plot_data()
 
-        return np.min(self.scores_hist[-1])
+        # get some metrics
+        ind = np.argmin(self.scores_hist[-1])
+        best_total = self.gameloops[ind].total_cost()
+        best_minmax = self.gameloops[ind].minmax()
+        elapsed = time.time() - starttime
+        return np.min(self.scores_hist[-1]), best_total, best_minmax, elapsed
 
     def init_nodeweights(self):
         nodeweights_pop = {}
@@ -139,7 +146,7 @@ class Allocator:
             return self.crossover_single(parentA, parentB)
         elif params.CROSSOVER_FUNCTION == "TWO":
             return self.crossover_two_point(parentA, parentB)
-        elif params.CROSSOVER_FUNCTION == "UNIFORM": 
+        elif params.CROSSOVER_FUNCTION == "UNIFORM":
             return self.crossover_uniform(parentA, parentB)
         else: #MIXED
             rand_select = np.random.rand()
@@ -155,7 +162,7 @@ class Allocator:
         childA = np.empty(len)
         childB = np.empty(len)
         split_ind = np.random.randint(1, len[1]-1)
-        
+
         childA[:,0:split_ind] = parentA[:,0:split_ind]
         childA[:,split_ind:] = parentB[:,split_ind:]
 
@@ -170,18 +177,18 @@ class Allocator:
         childB = np.empty(len)
         left_pt = np.random.randint(1, len[1]-1)
         right_pt = np.random.randint(left_pt, len[1])
-            
+
         childA = np.hstack((parentA[:,0:left_pt], parentB[:,left_pt:right_pt], parentA[:,right_pt:]))
         childB = np.hstack((parentB[:,0:left_pt], parentA[:,left_pt:right_pt], parentB[:,right_pt:]))
 
-        return childA, childB 
+        return childA, childB
 
     def crossover_uniform(self, parentA, parentB):
         len = parentA.shape
         bit_array = np.random.choice([0, 1], len)
         childA = np.where(bit_array, parentA, parentB)
         childB = np.where(1-bit_array, parentA, parentB)
-                
+
         # print('\nparentA', parentA)
         # print('parentB', parentB)
         # print('bitarray', bit_array, '1-bitarray', 1-bit_array)
@@ -195,7 +202,7 @@ class Allocator:
             return self.mutation_random_reset(parent)
         elif params.MUTATION_FUNCTION == "SWAP":
             return self.mutation_swap(parent)
-        elif params.CROSSOVER_FUNCTION == "INVERSION": 
+        elif params.CROSSOVER_FUNCTION == "INVERSION":
             return self.mutation_inversion(parent)
         else: #MIXED
             rand_select = np.random.rand()
@@ -234,4 +241,4 @@ class Allocator:
         for agent in range(parent.shape[0]):
             slice = parent[agent, left_idx:right_idx]
             parent[agent, left_idx:right_idx] = np.fliplr([slice])
-        return parent    
+        return parent

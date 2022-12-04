@@ -15,7 +15,7 @@ import params
 def test_run(fname, num_agents, testname):
     G = read_graph(fname)
     allocator = Allocator(graph=G, num_agents=num_agents)
-    score = allocator.allocate()
+    score, best_total, best_minmax, elapsed = allocator.allocate()
 
     # plot the first gameloop in the allocator
     plot_name = os.path.join(testname, '{}agents_{}.jpg'.format(num_agents, os.path.basename(fname)[0:-5]))
@@ -23,15 +23,21 @@ def test_run(fname, num_agents, testname):
     # plot_score_name = os.path.join(testname, 'scorehist_{}agents_{}.jpg'.format(num_agents, os.path.basename(fname)[0:-5]))
     # allocator.plot_data(plot_score_name)
 
-    return score, allocator.get_min_score_hist()
+    return score, best_total, best_minmax, elapsed, allocator.get_min_score_hist()
 
 def test_files(files, agents, testname):
-    scores_dict = {}
+    metrics_dict = {
+        'score': {},
+        'total_cost': {},
+        'minmax': {},
+        'elapsed': {},
+    }
+
     best_scores_hist = {}
     for fname in files:
             for num_agents in agents:
-                score, min_score_hist = test_run(fname, num_agents, testname)
-                print('file: {}, agents: {}, score: {}'.format(fname, num_agents, score))
+                score, best_total, best_minmax, elapsed, min_score_hist = test_run(fname, num_agents, testname)
+                print('file: {}, agents: {}, score: {}, elapsed: {}'.format(fname, num_agents, score, elapsed))
 
                 # get the number of nodes from the filename so we can keep track of scores
                 basename = os.path.basename(fname)
@@ -39,28 +45,36 @@ def test_files(files, agents, testname):
                 num_nodes = int(basename[0:ind])
 
                 # keep track of scores
-                keystring = '{} nodes {} agents'.format(num_nodes, num_agents)
-                if (keystring not in scores_dict):
-                    scores_dict[keystring] = [score]
+                # calculate total cost and minmax as well
+                config_key = (num_nodes, num_agents)
+                if (config_key not in metrics_dict['score']):
+                    metrics_dict['score'][config_key] = [score]
+                    metrics_dict['total_cost'][config_key] = [best_total]
+                    metrics_dict['minmax'][config_key] = [best_minmax]
+                    metrics_dict['elapsed'][config_key] = [elapsed]
                 else:
-                    scores_dict[keystring].append(score)
+                    metrics_dict['score'][config_key].append(score)
+                    metrics_dict['total_cost'][config_key].append(best_total)
+                    metrics_dict['minmax'][config_key].append(best_minmax)
+                    metrics_dict['elapsed'][config_key].append(elapsed)
 
                 # keep track of convergence data
-                if (keystring not in best_scores_hist):
-                    best_scores_hist[keystring] = (num_nodes, num_agents, [min_score_hist]) # make a tuple to also keep track of number of nodes and agents
+                if (config_key not in best_scores_hist):
+                    best_scores_hist[config_key] = [min_score_hist]
                 else:
-                    best_scores_hist[keystring][2].append(min_score_hist)
+                    best_scores_hist[config_key].append(min_score_hist)
 
     # calculate average scores at the end
-    for keystring in scores_dict:
-        scores_dict[keystring] = np.mean(scores_dict[keystring])
+    for key in metrics_dict:
+        for config_key in metrics_dict[key]:
+            metrics_dict[key][config_key] = np.mean(metrics_dict[key][config_key])
 
     # plot average convergence at the end
-    for keystring in best_scores_hist:
-        plot_name = os.path.join(testname, '{}agents_{}nodes_convergence.jpg'.format(best_scores_hist[keystring][1], best_scores_hist[keystring][0]))
-        plot_score_convergence(np.array(best_scores_hist[keystring][2]), plot_name)
+    for config_key in best_scores_hist:
+        plot_name = os.path.join(testname, '{}agents_{}nodes_convergence.jpg'.format(config_key[1], config_key[0]))
+        plot_score_convergence(np.array(best_scores_hist[config_key]), plot_name)
 
-    return scores_dict
+    return metrics_dict
 
 def plot_score_convergence(best_scores, fname):
     mean_scores = np.mean(best_scores, axis=0)
@@ -94,12 +108,12 @@ if __name__ == '__main__':
 
         for i in range(len(lines)):
             lines[i] = lines[i].strip()
-        scores_dict = test_files(lines, args.agents, testname)
-        print('average scores:', scores_dict)
+        metrics_dict = test_files(lines, args.agents, testname)
+        print('metrics:', metrics_dict)
 
     elif (args.all):
         files = glob.glob('graphs/*.json')
         files.sort()
 
-        scores_dict = test_files(files, args.agents, testname)
-        print('average scores:', scores_dict)
+        metrics_dict = test_files(files, args.agents, testname)
+        print('metrics:', metrics_dict)
