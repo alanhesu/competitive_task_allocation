@@ -45,6 +45,8 @@ class Agent:
     def step(self):
         # print(self.position)
         #TODO should we be allowed to change direction, or only do these checks in the idle state?
+        # if (self.goal is not None):
+        #     print(self.id, self.goal, self.state, self.position, self.graph.nodes[self.goal]['pos'], self.done_tasks)
         if (all(self.done_tasks.values())):
             self.goal = self.start
             self.state = States.MOVING
@@ -102,7 +104,7 @@ class Agent:
             else:
                 dX = self.move_pretend()
             dist = euclidean(self.position, self.graph.nodes[self.goal]['pos'])
-            if (np.linalg.norm(dX) >= dist): # we travel far enough to reach the goal
+            if (np.linalg.norm(dX) >= dist or np.linalg.norm(dX) == 0): # we travel far enough to reach the goal
                 # print('{} at {}'.format(self.id, self.goal))
                 self.prev_node = self.goal
                 self.position = self.graph.nodes[self.goal]['pos']

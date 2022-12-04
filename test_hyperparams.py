@@ -47,6 +47,7 @@ def test_hyperparams(testname, params):
                 'minmax (5, 2)', 'minmax (10, 2)', 'minmax (20, 2)', 'minmax (5, 5)', 'minmax (10, 5)', 'minmax (20, 5)',
                 'elapsed (5, 2)', 'elapsed (10, 2)', 'elapsed (20, 2)', 'elapsed (5, 5)', 'elapsed (10, 5)', 'elapsed (20, 5)']
     param_df = pd.concat([param_df, pd.DataFrame(columns=headers)], axis=1)
+    param_df.to_csv('{}.csv'.format(testname), index=False)
 
     for i in range(0, len(param_df)):
         print('Test {}/{}'.format(i, len(param_df)))

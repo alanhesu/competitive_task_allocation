@@ -41,6 +41,7 @@ class GameLoop():
         self.reset()
 
     def loop(self):
+        num_iter = 0
         while not all(self.agent_dones.values()):
             for agent in self.agents:
                 if (agent.done):
@@ -68,6 +69,7 @@ class GameLoop():
                 #     self.intents[agent] = agent.goal
 
                 self.agent_dones[agent.id] = agent.done
+            num_iter += 1
 
         if (self.plot):
             self.plot_graph()
