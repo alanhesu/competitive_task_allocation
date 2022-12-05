@@ -20,6 +20,8 @@ class Allocator:
                 phi=params.PHI,
                 max_iter=params.MAX_ITER,
                 operator_threshold=params.OPERATOR_THRESHOLD,
+                adaptive_var_threshold=params.ADAPTIVE_VAR_THRESHOLD,
+                adaptive_operator_threshold_step_size = params.ADAPTIVE_OPERATOR_THRESHOLD_STEP_SIZE,
                 start_weight=params.START_WEIGHT,
                 mutation_rate=params.MUTATION_RATE,
                 crossover_function=params.CROSSOVER_FUNCTION,
@@ -34,6 +36,8 @@ class Allocator:
         self.phi = phi
         self.max_iter = max_iter
         self.operator_threshold = operator_threshold
+        self.adaptive_var_threshold = adaptive_var_threshold
+        self.adaptive_operator_threshold_step_size = adaptive_operator_threshold_step_size
         self.start_weight = start_weight
         self.mutation_rate = mutation_rate
         self.crossover_function = crossover_function
@@ -56,8 +60,9 @@ class Allocator:
         # randomly initialize nodeweights
         nodeweights_pop = self.init_nodeweights()
         scores = np.zeros(self.popsize)
-
+        recent_scores = []
         starttime = time.time()
+        
         # in a loop until convergence:
         for iter in range(0, self.max_iter):
             print('allocator iteration {}'.format(iter))
@@ -84,7 +89,10 @@ class Allocator:
             self.scores_hist.append(copy.deepcopy(scores))
             # print(np.mean(scores), scores)
 
-            elites  = self.selection_pair(nodeweights_pop,scores) # elites survive
+            elites, avg_elite_score = self.selection_pair(nodeweights_pop,scores) # elites survive
+            recent_scores.append(avg_elite_score)
+            recent_scores, convergence = self.adaptive_convergence(recent_scores)
+
             new_population = copy.deepcopy(elites)[0:self.num_elite]
             while len(new_population) < self.popsize:
                 operator = random()
@@ -102,7 +110,6 @@ class Allocator:
                     child = self.mutation(parent)
                     new_population.append(child)
 
-            #print(np.array(new_population))
             for i, key in enumerate(nodeweights_pop):
                 nodeweights_pop[key] = new_population[i]
             '''
@@ -151,16 +158,32 @@ class Allocator:
 
     # select agents that survive to next generation based on fitness, number based on num_elite parameter
     # explore: roulette, fittest half, random
-    # Returns: list of surviving agents
+    # Returns: list of surviving agents, average elite score 
     def selection_pair(self, pop_weights, scores):
         ranked_scores = [sorted(scores).index(x) for x in scores]
         elite_agents = []
-        for _ in range(self.num_parent):
+        min_scores = []
+        for i in range(self.num_parent):
             elite_idx = ranked_scores.index(min(ranked_scores))
+            if i < self.num_elite: 
+                min_scores.append(min(ranked_scores))
             ranked_scores[elite_idx] = np.inf
             elite_agents.append(pop_weights[elite_idx])
+        avg_elite_score = sum(min_scores)/self.num_elite
+        return elite_agents, avg_elite_score
 
-        return elite_agents
+    def adaptive_convergence(self, recent_scores):
+        convergence = False
+        if len(recent_scores) < self.num_elite:
+            return recent_scores, convergence
+        recent_scores.pop(0)
+        if np.var(np.array(recent_scores)) < self.adaptive_var_threshold:
+            self.operator_threshold += self.adaptive_operator_threshold_step_size
+        if self.operator_threshold >= 1.0:
+            convergence = True
+        #print("NEW MUTATION RATE", self.operator_threshold)
+        return recent_scores, convergence
+
 
 ## Crossover Functions
     def crossover(self, parentA, parentB):
