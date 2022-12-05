@@ -75,28 +75,28 @@ def test_hyperparams(testname, params):
 
 if __name__ == '__main__':
     params = {
-        'eps': params.EPSILON,
-        'gamma': params.GAMMA,
-        'alpha': params.WEIGHT_ALPHA,
-        'beta': params.WEIGHT_BETA,
-        'comm_dones': [True, False],
-        'see_dones': [True, False],
-        'see_intent': [True, False],
-        'comm_range': [10, 50],
-        'phi': params.PHI,
-        'incomplete_penalty': params.INCOMPLETE_PENALTY,
-        'popsize': params.POPSIZE,
-        'num_parent': params.NUM_PARENT,
-        'num_elite': params.NUM_ELITE,
-        'phi': params.PHI,
-        'max_iter': 20,
+        'eps': params.EPSILON, # dont change
+        'gamma': params.GAMMA, # dont change
+        'alpha': params.WEIGHT_ALPHA, # dont change
+        'beta': params.WEIGHT_BETA, # dont change
+        'comm_dones': False,
+        'see_dones': False,
+        'see_intent': False,
+        'comm_range': 0,
+        'phi': params.PHI,  # dont change
+        'incomplete_penalty': params.INCOMPLETE_PENALTY, # dont change
+        'popsize': [20, 40, 80],
+        'num_parent': [10, 20],
+        'num_elite': [2, 5, 10],
+        'max_iter': params.MAX_ITER, #20, 50
         'operator_threshold': params.OPERATOR_THRESHOLD,
         'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
         'operator_step_size': params.OPERATOR_STEP_SIZE,
-        'start_weight': params.START_WEIGHT,
+        'start_weight': params.START_WEIGHT, # dont change
         'mutation_rate': params.MUTATION_RATE,
-        'crossover_function': params.CROSSOVER_FUNCTION,
-        'mutation_function': params.MUTATION_FUNCTION,
+        'crossover_function': params.CROSSOVER_FUNCTION,  # dont change
+        'mutation_function': params.MUTATION_FUNCTION,  # dont change
+        # operator step size
     }
 
     # so we dont have to wrap everthing in a list manually
@@ -104,4 +104,4 @@ if __name__ == '__main__':
         if (not isinstance(params[key], list)):
             params[key] = [params[key]]
 
-    test_hyperparams('test', params)
+    test_hyperparams('test2', params)
