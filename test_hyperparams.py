@@ -29,6 +29,8 @@ allocator_kwargs = {
     'phi': params.PHI,
     'max_iter': params.MAX_ITER,
     'operator_threshold': params.OPERATOR_THRESHOLD,
+    'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
+    'operator_step_size': params.OPERATOR_STEP_SIZE,
     'start_weight': params.START_WEIGHT,
     'mutation_rate': params.MUTATION_RATE,
     'crossover_function': params.CROSSOVER_FUNCTION,
@@ -88,6 +90,8 @@ if __name__ == '__main__':
         'num_elite': [2, 5, 10],
         'max_iter': params.MAX_ITER, #20, 50
         'operator_threshold': params.OPERATOR_THRESHOLD,
+        'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
+        'operator_step_size': params.OPERATOR_STEP_SIZE,
         'start_weight': params.START_WEIGHT, # dont change
         'mutation_rate': params.MUTATION_RATE,
         'crossover_function': params.CROSSOVER_FUNCTION,  # dont change
