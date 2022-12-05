@@ -27,7 +27,7 @@ START_WEIGHT = .1 # initial nodeweight for returning to start. Set to 1 to make 
 MAX_ITER = 20
 OPERATOR_THRESHOLD = .6 # crossover for less than threshold, mutation for >=
 ADAPTIVE_VAR_THRESHOLD = 0.1 # rate of improvement threshold for adaptive randomness
-ADAPTIVE_OPERATOR_THRESHOLD_STEP_SIZE = 0.05 # step size for increasing mutation rate over crossover
+ADAPTIVE_OPERATOR_THRESHOLD_STEP_SIZE = 0.03 # step size for increasing mutation rate over crossover
 CROSSOVER_FUNCTION = 'MIXED' # SINGLE, TWO, UNIFORM, MIXED
 MUTATION_FUNCTION = 'MIXED'  # RESET, SWAP, INVERSION, MIXED
 MUTATION_RATE = .3 # note this and operator threshold DO NOT NEED TO ADD TO 1

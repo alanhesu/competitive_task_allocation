@@ -92,6 +92,8 @@ class Allocator:
             elites, avg_elite_score = self.selection_pair(nodeweights_pop,scores) # elites survive
             recent_scores.append(avg_elite_score)
             recent_scores, convergence = self.adaptive_convergence(recent_scores)
+            if convergence:
+                break
 
             new_population = copy.deepcopy(elites)[0:self.num_elite]
             while len(new_population) < self.popsize:
@@ -178,7 +180,8 @@ class Allocator:
             return recent_scores, convergence
         recent_scores.pop(0)
         if np.var(np.array(recent_scores)) < self.adaptive_var_threshold:
-            self.operator_threshold += self.adaptive_operator_threshold_step_size
+            if self.operator_threshold+self.adaptive_operator_threshold_step_size < 1.0:
+                self.operator_threshold += self.adaptive_operator_threshold_step_size
         if self.operator_threshold >= 1.0:
             convergence = True
         #print("NEW MUTATION RATE", self.operator_threshold)
