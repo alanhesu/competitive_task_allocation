@@ -77,14 +77,11 @@ def test_files(files, agents, testname, agent_kwargs, gameloop_kwargs, allocator
     return metrics_dict
 
 def plot_score_convergence(best_scores, fname):
-    mean_scores = np.mean(best_scores, axis=0)
-    max_scores = np.max(best_scores, axis=0)
-    min_scores = np.min(best_scores, axis=0)
-
     plt.figure()
-    plt.plot(mean_scores)
-    plt.fill_between(np.arange(min_scores.size), min_scores, max_scores, alpha=.3)
+    for i, score_hist in enumerate(best_scores):
+        plt.plot(score_hist, label='{}'.format(i))
     plt.xlabel('iteration')
+    plt.legend(loc='best')
     plt.savefig(fname)
     plt.close()
 
