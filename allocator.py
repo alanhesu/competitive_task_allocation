@@ -21,7 +21,7 @@ class Allocator:
                 max_iter=params.MAX_ITER,
                 operator_threshold=params.OPERATOR_THRESHOLD,
                 adaptive_var_threshold=params.ADAPTIVE_VAR_THRESHOLD,
-                adaptive_operator_threshold_step_size = params.ADAPTIVE_OPERATOR_THRESHOLD_STEP_SIZE,
+                operator_step_size = params.OPERATOR_STEP_SIZE,
                 start_weight=params.START_WEIGHT,
                 mutation_rate=params.MUTATION_RATE,
                 crossover_function=params.CROSSOVER_FUNCTION,
@@ -37,7 +37,7 @@ class Allocator:
         self.max_iter = max_iter
         self.operator_threshold = operator_threshold
         self.adaptive_var_threshold = adaptive_var_threshold
-        self.adaptive_operator_threshold_step_size = adaptive_operator_threshold_step_size
+        self.operator_step_size = operator_step_size
         self.start_weight = start_weight
         self.mutation_rate = mutation_rate
         self.crossover_function = crossover_function
@@ -120,14 +120,14 @@ class Allocator:
             for last game, mutation
             '''
             # inputs: dictionary of 2d np array of weights, 1d np array of scores
-
+        elapsed = time.time() - starttime
         self.plot_data()
 
         # get some metrics
         ind = np.argmin(self.scores_hist[-1])
         best_total = self.gameloops[ind].total_cost()
         best_minmax = self.gameloops[ind].minmax()
-        elapsed = time.time() - starttime
+        
         return np.min(self.scores_hist[-1]), best_total, best_minmax, elapsed
 
     def init_nodeweights(self):
@@ -180,11 +180,10 @@ class Allocator:
             return recent_scores, convergence
         recent_scores.pop(0)
         if np.var(np.array(recent_scores)) < self.adaptive_var_threshold:
-            if self.operator_threshold+self.adaptive_operator_threshold_step_size < 1.0:
-                self.operator_threshold += self.adaptive_operator_threshold_step_size
+            self.operator_threshold += self.operator_step_size
         if self.operator_threshold >= 1.0:
             convergence = True
-        #print("NEW MUTATION RATE", self.operator_threshold)
+        # print("NEW MUTATION RATE", self.operator_threshold)
         return recent_scores, convergence
 
 
