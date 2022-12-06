@@ -89,13 +89,13 @@ if __name__ == '__main__':
         'num_parent': [10],#, 20],
         'num_elite': [2],#, 5, 10],
         'max_iter': [20, 50],
-        'operator_threshold': params.OPERATOR_THRESHOLD,
+        'operator_threshold': [.3, .6, 1],
         'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
-        'operator_step_size': params.OPERATOR_STEP_SIZE,
+        'operator_step_size': [0, .03, .1],
         'start_weight': params.START_WEIGHT, # dont change
-        'mutation_rate': params.MUTATION_RATE,
-        'crossover_function': ['SINGLE','TWO','UNIFORM','MIXED'], #params.CROSSOVER_FUNCTION,  # dont change
-        'mutation_function': ['RESET','SWAP','INVERSION','MIXED'] #params.MUTATION_FUNCTION,  # dont change
+        'mutation_rate': [.1, .3, .6],
+        'crossover_function': params.CROSSOVER_FUNCTION,  # dont change
+        'mutation_function': params.MUTATION_FUNCTION,  # dont change
     }
 
     # so we dont have to wrap everthing in a list manually
@@ -103,4 +103,4 @@ if __name__ == '__main__':
         if (not isinstance(params[key], list)):
             params[key] = [params[key]]
 
-    test_hyperparams('test2', params)
+    test_hyperparams('test_operator', params)
