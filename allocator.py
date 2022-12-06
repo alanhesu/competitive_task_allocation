@@ -1,7 +1,7 @@
 import networkx as nx
 import numpy as np
 import copy
-from random import choice, random, sample, randrange, randint
+from random import choice, choices, random, sample, randrange, randint
 import sys
 import time
 
@@ -51,7 +51,8 @@ class Allocator:
             gameloop = GameLoop(graph=self.graph, num_agents=self.num_agents, id=i, agent_kwargs=agent_kwargs, **gameloop_kwargs)
             self.gameloops.append(gameloop)
 
-        # initialie the GA class
+        # GA Convergence
+        self.successive_iter = 0
 
         # initialize data logging
         self.scores_hist = []
@@ -74,20 +75,10 @@ class Allocator:
 
                 # calculate score based on metric
                 scores[i] = self.phi*gameloop.minmax() + (1 - self.phi)*gameloop.total_cost()
-                # if (self.metric == 'total'):
-                #     scores[i] = gameloop.total_cost()
-                # elif (self.metric == 'minmax'):
-                #     scores[i] = gameloop.minmax()
 
                 sys.stdout.flush()
 
-            # run GA to get new nodeweights
-
-
-            # print(list(nodeweights_pop.values())[0].shape)
-            #print(list(nodeweights_pop.values())[0]) # 1 game 2 agents 5 weight nodes each agent
             self.scores_hist.append(copy.deepcopy(scores))
-            # print(np.mean(scores), scores)
 
             elites, avg_elite_score = self.selection_pair(nodeweights_pop,scores) # elites survive
             recent_scores.append(avg_elite_score)
@@ -98,7 +89,7 @@ class Allocator:
             new_population = copy.deepcopy(elites)[0:self.num_elite]
             while len(new_population) < self.popsize:
                 operator = random()
-                if operator < self.operator_threshold:
+                if operator > self.operator_threshold:  #   crossover
                     parent_a, parent_b = sample(elites, k=2)
 
                     childA, childB = self.crossover(parent_a, parent_b)
@@ -107,19 +98,14 @@ class Allocator:
                     if len(new_population) < self.popsize:
                         new_population.append(childB)
 
-                else:
+                else:                                   #   mutation
                     parent = choice(elites)
                     child = self.mutation(parent)
                     new_population.append(child)
 
             for i, key in enumerate(nodeweights_pop):
                 nodeweights_pop[key] = new_population[i]
-            '''
-            sort scores and the highest two scores (of games) are kept, others discarded
-            until rest of discarded games (len scores - 2) are filled, crossover the two games until only 1 empty game left
-            for last game, mutation
-            '''
-            # inputs: dictionary of 2d np array of weights, 1d np array of scores
+
         elapsed = time.time() - starttime
         self.plot_data()
 
@@ -159,7 +145,6 @@ class Allocator:
         plt.close()
 
     # select agents that survive to next generation based on fitness, number based on num_elite parameter
-    # explore: roulette, fittest half, random
     # Returns: list of surviving agents, average elite score 
     def selection_pair(self, pop_weights, scores):
         ranked_scores = [sorted(scores).index(x) for x in scores]
@@ -168,34 +153,59 @@ class Allocator:
         for i in range(self.num_parent):
             elite_idx = ranked_scores.index(min(ranked_scores))
             if i < self.num_elite: 
-                min_scores.append(min(ranked_scores))
+                min_scores.append(scores[elite_idx])
             ranked_scores[elite_idx] = np.inf
             elite_agents.append(pop_weights[elite_idx])
+
         avg_elite_score = sum(min_scores)/self.num_elite
+
         return elite_agents, avg_elite_score
 
+    # TODO clean this up
     def adaptive_convergence(self, recent_scores):
         convergence = False
-        if len(recent_scores) < self.num_elite:
+        if len(recent_scores) < self.num_elite + 1:
             return recent_scores, convergence
+
         recent_scores.pop(0)
-        if np.var(np.array(recent_scores)) < self.adaptive_var_threshold:
+        curr_variance = np.var(np.array(recent_scores))
+
+        if curr_variance < self.adaptive_var_threshold:
             self.operator_threshold += self.operator_step_size
-        if self.operator_threshold >= 1.0:
+            if self.operator_threshold >= 1.0:
+                self.operator_threshold = 1.0 
+        
+        if curr_variance == 0:
+            self.successive_iter += 1
+        else:
+            self.successive_iter = 0
+            self.operator_threshold = params.OPERATOR_THRESHOLD
+
+        if self.successive_iter == 8:
             convergence = True
-        # print("NEW MUTATION RATE", self.operator_threshold)
+            self.successive_iter = 0
+        # print("\n\nMUTATION RATE", self.operator_threshold)
+        # print(recent_scores)
+        # print(self.successive_iter)
         return recent_scores, convergence
 
 
 ## Crossover Functions
     def crossover(self, parentA, parentB):
-
+        crossover_selection = ['SINGLE','TWO','UNIFORM']
+        choice = ''
+        # if self.crossover_function == 'SINGLE':
+        #     return self.crossover_single(parentA, parentB)
+        # elif self.crossover_function == "TWO":
+        #     return self.crossover_two_point(parentA, parentB)
+        # elif self.crossover_function == "UNIFORM":
+        #     return self.crossover_uniform(parentA, parentB)
         if self.crossover_function == 'SINGLE':
-            return self.crossover_single(parentA, parentB)
+            choice = choices(crossover_selection, cum_weights=(50, 25, 25), k=1)[0]
         elif self.crossover_function == "TWO":
-            return self.crossover_two_point(parentA, parentB)
+            choice = choices(crossover_selection, cum_weights=(25, 50, 25), k=1)[0]
         elif self.crossover_function == "UNIFORM":
-            return self.crossover_uniform(parentA, parentB)
+            choice = choices(crossover_selection, cum_weights=(25, 25, 50), k=1)[0]
         else: #MIXED
             rand_select = np.random.rand()
             if rand_select < (1/3):
@@ -204,6 +214,13 @@ class Allocator:
                 return self.crossover_two_point(parentA, parentB)
             else:
                 return self.crossover_uniform(parentA, parentB)
+
+        if choice == 'SINGLE':
+            return self.crossover_single(parentA, parentB)
+        elif choice == 'TWO':
+            return self.crossover_two_point(parentA, parentB)
+        else:
+            return self.crossover_uniform(parentA, parentB)
 
     def crossover_single(self, parentA, parentB):
         len = parentA.shape
@@ -237,21 +254,24 @@ class Allocator:
         childA = np.where(bit_array, parentA, parentB)
         childB = np.where(1-bit_array, parentA, parentB)
 
-        # print('\nparentA', parentA)
-        # print('parentB', parentB)
-        # print('bitarray', bit_array, '1-bitarray', 1-bit_array)
-        # print('childA', childA)
-        # print('childB', childB)
         return childA, childB
 
 ## Mutation Functions
     def mutation(self, parent):
+        mutation_selection = ['RESET', 'SWAP', 'INVERSION']
+        choice = ''
+        # if self.mutation_function == 'RESET':
+        #     return self.mutation_random_reset(parent)
+        # elif self.mutation_function == "SWAP":
+        #     return self.mutation_swap(parent)
+        # elif self.mutation_function == "INVERSION":
+        #     return self.mutation_inversion(parent)
         if self.mutation_function == 'RESET':
-            return self.mutation_random_reset(parent)
+            choice = choices(mutation_selection, cum_weights=(50, 25, 25), k=1)[0]
         elif self.mutation_function == "SWAP":
-            return self.mutation_swap(parent)
+            choice = choices(mutation_selection, cum_weights=(25, 50, 25), k=1)[0]
         elif self.mutation_function == "INVERSION":
-            return self.mutation_inversion(parent)
+            choice = choices(mutation_selection, cum_weights=(25, 25, 50), k=1)[0]
         else: #MIXED
             rand_select = np.random.rand()
             if rand_select < (1/3):
@@ -260,6 +280,13 @@ class Allocator:
                 return self.mutation_swap(parent)
             else:
                 return self.mutation_inversion(parent)
+
+        if choice == 'REST':
+            return self.mutation_random_reset(parent)
+        elif choice == 'SWAP':
+            return self.mutation_swap(parent)
+        else:
+            return self.mutation_inversion(parent)
 
     def mutation_random_reset(self, parent):
         def mutate(gene):
