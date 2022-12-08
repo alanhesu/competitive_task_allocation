@@ -31,5 +31,6 @@ OPERATOR_STEP_SIZE = 0.05 # step size for increasing mutation rate over crossove
 CROSSOVER_FUNCTION = 'SINGLE' # SINGLE, TWO, UNIFORM, MIXED
 MUTATION_FUNCTION = 'SWAP'  # RESET, SWAP, INVERSION, MIXED
 MUTATION_RATE = .3 # note this and operator threshold DO NOT NEED TO ADD TO 1
+MAX_QUIESCENCE = 5 # how many iterations before early stopping
 PHI = .9 # score = phi*minmax + (1-phi)*totalcost
 INCOMPLETE_PENALTY = 3e3

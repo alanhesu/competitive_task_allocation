@@ -26,6 +26,7 @@ class Allocator:
                 mutation_rate=params.MUTATION_RATE,
                 crossover_function=params.CROSSOVER_FUNCTION,
                 mutation_function=params.MUTATION_FUNCTION,
+                max_quiescence=params.MAX_QUIESCENCE,
                 gameloop_kwargs=None,
                 agent_kwargs=None):
         self.graph = graph
@@ -42,6 +43,7 @@ class Allocator:
         self.mutation_rate = mutation_rate
         self.crossover_function = crossover_function
         self.mutation_function = mutation_function
+        self.max_quiescence = max_quiescence
         self.gameloop_kwargs = gameloop_kwargs
         self.agent_kwargs = agent_kwargs
 
@@ -63,7 +65,7 @@ class Allocator:
         scores = np.zeros(self.popsize)
         recent_scores = []
         starttime = time.time()
-        
+
         # in a loop until convergence:
         for iter in range(0, self.max_iter):
             print('allocator iteration {}'.format(iter))
@@ -113,7 +115,7 @@ class Allocator:
         ind = np.argmin(self.scores_hist[-1])
         best_total = self.gameloops[ind].total_cost()
         best_minmax = self.gameloops[ind].minmax()
-        
+
         return np.min(self.scores_hist[-1]), best_total, best_minmax, elapsed
 
     def init_nodeweights(self):
@@ -145,43 +147,43 @@ class Allocator:
         plt.close()
 
     # select agents that survive to next generation based on fitness, number based on num_elite parameter
-    # Returns: list of surviving agents, average elite score 
+    # Returns: list of surviving agents, average elite score
     def selection_pair(self, pop_weights, scores):
         ranked_scores = [sorted(scores).index(x) for x in scores]
         elite_agents = []
         min_scores = []
         for i in range(self.num_parent):
             elite_idx = ranked_scores.index(min(ranked_scores))
-            if i < self.num_elite: 
+            if i < self.num_elite:
                 min_scores.append(scores[elite_idx])
             ranked_scores[elite_idx] = np.inf
             elite_agents.append(pop_weights[elite_idx])
 
-        avg_elite_score = sum(min_scores)/self.num_elite
+        avg_elite_score = sum(min_scores[0:self.num_elite])/self.num_elite
 
         return elite_agents, avg_elite_score
 
     # TODO clean this up
     def adaptive_convergence(self, recent_scores):
         convergence = False
-        if len(recent_scores) < self.num_elite + 1:
+        if len(recent_scores) < self.max_quiescence + 1:
             return recent_scores, convergence
 
         recent_scores.pop(0)
-        curr_variance = np.var(np.array(recent_scores))
+        curr_variance = (np.max(recent_scores) - np.min(recent_scores))/np.min(recent_scores)
 
         if curr_variance < self.adaptive_var_threshold:
             self.operator_threshold += self.operator_step_size
             if self.operator_threshold >= 1.0:
-                self.operator_threshold = 1.0 
-        
+                self.operator_threshold = 1.0
+
         if curr_variance == 0:
             self.successive_iter += 1
         else:
             self.successive_iter = 0
             self.operator_threshold = params.OPERATOR_THRESHOLD
 
-        if self.successive_iter == 8:
+        if self.successive_iter == self.max_quiescence:
             convergence = True
             self.successive_iter = 0
         # print("\n\nMUTATION RATE", self.operator_threshold)

@@ -36,6 +36,7 @@ allocator_kwargs = {
     'mutation_rate': params.MUTATION_RATE,
     'crossover_function': params.CROSSOVER_FUNCTION,
     'mutation_function': params.MUTATION_FUNCTION,
+    'max_quiescence': params.MAX_QUIESCENCE,
 }
 
 def test_hyperparams(testname, params):
@@ -49,12 +50,19 @@ def test_hyperparams(testname, params):
                 'totalcost (5, 2)', 'totalcost (10, 2)', 'totalcost (20, 2)', 'totalcost (5, 5)', 'totalcost (10, 5)', 'totalcost (20, 5)',
                 'minmax (5, 2)', 'minmax (10, 2)', 'minmax (20, 2)', 'minmax (5, 5)', 'minmax (10, 5)', 'minmax (20, 5)',
                 'elapsed (5, 2)', 'elapsed (10, 2)', 'elapsed (20, 2)', 'elapsed (5, 5)', 'elapsed (10, 5)', 'elapsed (20, 5)']
-    param_df = pd.concat([param_df, pd.DataFrame(columns=headers)], axis=1)
+    param_df = pd.concat([pd.DataFrame(columns=['name']), param_df, pd.DataFrame(columns=headers)], axis=1)
     param_df.to_csv('{}.csv'.format(testname), index=False)
 
     for i in range(0, len(param_df)):
         print('Test {}/{}'.format(i, len(param_df)))
+        param_df.at[i,'name'] = '{}_{:04d}'.format(testname, i)
         row = param_df.iloc[i]
+
+        # dont run the test if num_elite>num_parent or num_parent>popsize
+        if (row['num_elite'] > row['num_parent'] or row['num_parent'] > row['popsize']):
+            print('Not running num_elite={}, num_parent={}, popsize={}'.format(row['num_elite'], row['num_parent'], row['popsize']))
+            continue
+
         # populate kwargs
         for key in row.keys():
             if (key in agent_kwargs):
@@ -93,19 +101,20 @@ if __name__ == '__main__':
         'see_dones': False,
         'see_intent': False,
         'comm_range': [10000],
-        'phi': [0, .1, .25, .5, .75, .9, 1],  # dont change
+        'phi': params.PHI,  # dont change
         'incomplete_penalty': params.INCOMPLETE_PENALTY, # dont change
         'popsize': [20],#, 40, 80],
         'num_parent': [10],#, 20],
         'num_elite': [2],#, 5, 10],
-        'max_iter': [20],
+        'max_iter': 20,
         'operator_threshold': params.OPERATOR_THRESHOLD, #, .6, 1],
         'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
         'operator_step_size': params.OPERATOR_STEP_SIZE, #[0, .03, .1],
         'start_weight': params.START_WEIGHT, # dont change
         'mutation_rate': params.MUTATION_RATE, #[.1, .3, .6],
         'crossover_function': params.CROSSOVER_FUNCTION,  # dont change
-        'mutation_function': 'RESET',  # dont change
+        'mutation_function': params.MUTATION_FUNCTION,  # dont change
+        'max_quiescence': [5],
     }
 
     # so we dont have to wrap everthing in a list manually
