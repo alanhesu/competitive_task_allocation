@@ -28,8 +28,8 @@ MAX_ITER = 40
 OPERATOR_THRESHOLD = .6 # crossover for less than threshold, mutation for >=
 ADAPTIVE_VAR_THRESHOLD = 0.1 # rate of improvement threshold for adaptive randomness
 OPERATOR_STEP_SIZE = 0.05 # step size for increasing mutation rate over crossover
-CROSSOVER_FUNCTION = 'SINGLE' # SINGLE, TWO, UNIFORM, MIXED
-MUTATION_FUNCTION = 'SWAP'  # RESET, SWAP, INVERSION, MIXED
+CROSSOVER_FUNCTION = 'MIXED' # SINGLE, TWO, UNIFORM, MIXED
+MUTATION_FUNCTION = 'MIXED'  # RESET, SWAP, INVERSION, MIXED
 MUTATION_RATE = .3 # note this and operator threshold DO NOT NEED TO ADD TO 1
 MAX_QUIESCENCE = 5 # how many iterations before early stopping
 PHI = .9 # score = phi*minmax + (1-phi)*totalcost
