@@ -2,6 +2,7 @@ import argparse
 import time
 import pandas as pd
 import itertools
+import os
 
 from test import run_tests
 import params
@@ -64,7 +65,7 @@ def test_hyperparams(testname, params):
                 allocator_kwargs[key] = row[key]
 
         # get metrics
-        metrics = run_tests([2], '{}_{:04d}'.format(testname, i), all=True, agent_kwargs=agent_kwargs, gameloop_kwargs=gameloop_kwargs, allocator_kwargs=allocator_kwargs)
+        metrics = run_tests([2, 5], '{}_{:04d}'.format(testname, i), all=True, agent_kwargs=agent_kwargs, gameloop_kwargs=gameloop_kwargs, allocator_kwargs=allocator_kwargs)
         for metric in metrics:
             for config_key in metrics[metric]:
                 col = '{} {}'.format(metric, config_key)
@@ -74,6 +75,15 @@ def test_hyperparams(testname, params):
         param_df.to_csv('{}.csv'.format(testname), index=False)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testname', type=str, required=True)
+
+    args = parser.parse_args()
+
+    if (os.path.exists('{}.csv'.format(args.testname))):
+        print('{}.csv already exists. Please provide a different testname'.format(args.testname))
+        exit()
+
     params = {
         'eps': params.EPSILON, # dont change
         'gamma': params.GAMMA, # dont change
@@ -82,20 +92,20 @@ if __name__ == '__main__':
         'comm_dones': False,
         'see_dones': False,
         'see_intent': False,
-        'comm_range': 0,
-        'phi': params.PHI,  # dont change
+        'comm_range': [10000],
+        'phi': [0, .1, .25, .5, .75, .9, 1],  # dont change
         'incomplete_penalty': params.INCOMPLETE_PENALTY, # dont change
         'popsize': [20],#, 40, 80],
         'num_parent': [10],#, 20],
         'num_elite': [2],#, 5, 10],
-        'max_iter': [20, 50],
-        'operator_threshold': [.3, .6, 1],
+        'max_iter': [20],
+        'operator_threshold': params.OPERATOR_THRESHOLD, #, .6, 1],
         'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
-        'operator_step_size': [0, .03, .1],
+        'operator_step_size': params.OPERATOR_STEP_SIZE, #[0, .03, .1],
         'start_weight': params.START_WEIGHT, # dont change
-        'mutation_rate': [.1, .3, .6],
+        'mutation_rate': params.MUTATION_RATE, #[.1, .3, .6],
         'crossover_function': params.CROSSOVER_FUNCTION,  # dont change
-        'mutation_function': params.MUTATION_FUNCTION,  # dont change
+        'mutation_function': 'RESET',  # dont change
     }
 
     # so we dont have to wrap everthing in a list manually
@@ -103,4 +113,4 @@ if __name__ == '__main__':
         if (not isinstance(params[key], list)):
             params[key] = [params[key]]
 
-    test_hyperparams('test_operator', params)
+    test_hyperparams(args.testname, params)
