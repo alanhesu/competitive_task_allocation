@@ -64,7 +64,7 @@ def test_hyperparams(testname, params):
                 allocator_kwargs[key] = row[key]
 
         # get metrics
-        metrics = run_tests([2, 5], '{}_{:04d}'.format(testname, i), all=True, agent_kwargs=agent_kwargs, gameloop_kwargs=gameloop_kwargs, allocator_kwargs=allocator_kwargs)
+        metrics = run_tests([2], '{}_{:04d}'.format(testname, i), all=True, agent_kwargs=agent_kwargs, gameloop_kwargs=gameloop_kwargs, allocator_kwargs=allocator_kwargs)
         for metric in metrics:
             for config_key in metrics[metric]:
                 col = '{} {}'.format(metric, config_key)
@@ -85,18 +85,17 @@ if __name__ == '__main__':
         'comm_range': 0,
         'phi': params.PHI,  # dont change
         'incomplete_penalty': params.INCOMPLETE_PENALTY, # dont change
-        'popsize': [20, 40, 80],
-        'num_parent': [10, 20],
-        'num_elite': [2, 5, 10],
-        'max_iter': params.MAX_ITER, #20, 50
+        'popsize': [20],#, 40, 80],
+        'num_parent': [10],#, 20],
+        'num_elite': [2],#, 5, 10],
+        'max_iter': [20, 50],
         'operator_threshold': params.OPERATOR_THRESHOLD,
         'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
         'operator_step_size': params.OPERATOR_STEP_SIZE,
         'start_weight': params.START_WEIGHT, # dont change
         'mutation_rate': params.MUTATION_RATE,
-        'crossover_function': params.CROSSOVER_FUNCTION,  # dont change
-        'mutation_function': params.MUTATION_FUNCTION,  # dont change
-        # operator step size
+        'crossover_function': ['SINGLE','TWO','UNIFORM','MIXED'], #params.CROSSOVER_FUNCTION,  # dont change
+        'mutation_function': ['RESET','SWAP','INVERSION','MIXED'] #params.MUTATION_FUNCTION,  # dont change
     }
 
     # so we dont have to wrap everthing in a list manually
