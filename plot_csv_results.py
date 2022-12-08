@@ -25,6 +25,7 @@ def plot_bar(fname, xvar_list, yvar):
         xvar_combo.append(xvar_labels)
 
     labels = list(itertools.product(*xvar_combo))
+    labels = sorted(labels)
     for key in mean_vals:
         colname = '{} {}'.format(yvar, key)
         for label in labels:
