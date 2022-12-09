@@ -60,15 +60,10 @@ class Agent:
                 if (self.goal == key):
                     self.state = States.IDLE
 
-                # dont forget to remove it from off_limits as well
-                if (key in self.off_limits):
-                    self.off_limits.remove(key)
-
         if (self.see_intent):
             for agent in self.intents:
                 other_goal = self.intents[agent]
                 if (agent.id != self.id
-                    and other_goal not in self.off_limits
                     and other_goal is not None
                     and other_goal == self.goal
                     and other_goal != self.start
@@ -77,16 +72,17 @@ class Agent:
                     other_dist = euclidean(agent.position, self.graph.nodes[other_goal]['pos'])
                     self_dist = euclidean(self.position, self.graph.nodes[self.goal]['pos'])
                     if (self_dist > other_dist):
+                        # print('{} moving away from {}'.format(self.id, self.goal))
                         self.state = States.IDLE
-                        self.off_limits.append(other_goal)
+
+                        # actually, just mark it as done for this agent
+                        del self.nodeweights[other_goal]
                         break
 
         if (self.state == States.IDLE):
             # decide where to go
             num = np.random.rand()
             weights = self.calc_nodeweights()
-            for key in self.off_limits: # remove off limit nodes from possible choices
-                del weights[key]
             if (num < self.eps):
                 self.goal = np.random.choice(list(weights.keys()))
             else:
@@ -108,7 +104,6 @@ class Agent:
                 # print('{} at {}'.format(self.id, self.goal))
                 self.prev_node = self.goal
                 self.position = self.graph.nodes[self.goal]['pos']
-                self.off_limits = [] # reset the list of off limits nodes
                 if (self.goal == self.start):
                     # at home
                     self.state = States.IDLE
@@ -147,7 +142,6 @@ class Agent:
         self.time = 0
         self.travel_hist = [] # a list of where it's been
         self.done = False
-        self.off_limits = [] # a list of nodes that are off limits
 
     def update_done_tasks(self, task_info):
         # set agent's done task list to union of self.done_tasks and task_info
