@@ -27,6 +27,7 @@ class Allocator:
                 crossover_function=params.CROSSOVER_FUNCTION,
                 mutation_function=params.MUTATION_FUNCTION,
                 max_quiescence=params.MAX_QUIESCENCE,
+                adaptive_var_iter=params.ADAPTIVE_VAR_ITER,
                 gameloop_kwargs=None,
                 agent_kwargs=None):
         self.graph = graph
@@ -44,6 +45,7 @@ class Allocator:
         self.crossover_function = crossover_function
         self.mutation_function = mutation_function
         self.max_quiescence = max_quiescence
+        self.adaptive_var_iter = adaptive_var_iter
         self.gameloop_kwargs = gameloop_kwargs
         self.agent_kwargs = agent_kwargs
 
@@ -52,9 +54,6 @@ class Allocator:
         for i in range(0, self.popsize):
             gameloop = GameLoop(graph=self.graph, num_agents=self.num_agents, id=i, agent_kwargs=agent_kwargs, **gameloop_kwargs)
             self.gameloops.append(gameloop)
-
-        # GA Convergence
-        self.successive_iter = 0
 
         # initialize data logging
         self.scores_hist = []
@@ -165,30 +164,28 @@ class Allocator:
 
     # TODO clean this up
     def adaptive_convergence(self, recent_scores):
+        def variance(scores):
+            return (np.max(scores) - np.min(scores))/np.min(scores)
+
         convergence = False
+
+        # recency scores not full yet
         if len(recent_scores) < self.max_quiescence + 1:
             return recent_scores, convergence
 
         recent_scores.pop(0)
-        curr_variance = (np.max(recent_scores) - np.min(recent_scores))/np.min(recent_scores)
+        print(recent_scores)
+        adaptive_iter = int((self.max_quiescence+1) // (1/self.adaptive_var_iter)) #floor
 
-        if curr_variance < self.adaptive_var_threshold:
+        if variance(recent_scores) < self.adaptive_var_threshold:   # max_quiescence reached
+            convergence = True  
+        elif variance(recent_scores[adaptive_iter:]) < self.adaptive_var_threshold: # increase mutation rate
             self.operator_threshold += self.operator_step_size
-            if self.operator_threshold >= 1.0:
+            if self.operator_threshold > 1.0:
                 self.operator_threshold = 1.0
-
-        if curr_variance == 0:
-            self.successive_iter += 1
-        else:
-            self.successive_iter = 0
+        else:   # new minima score found, resetting operator threshold
             self.operator_threshold = params.OPERATOR_THRESHOLD
 
-        if self.successive_iter == self.max_quiescence:
-            convergence = True
-            self.successive_iter = 0
-        # print("\n\nMUTATION RATE", self.operator_threshold)
-        # print(recent_scores)
-        # print(self.successive_iter)
         return recent_scores, convergence
 
 

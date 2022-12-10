@@ -107,14 +107,14 @@ if __name__ == '__main__':
         'num_parent': [10],#, 20],
         'num_elite': [2],#, 5, 10],
         'max_iter': 20,
-        'operator_threshold': params.OPERATOR_THRESHOLD, #, .6, 1],
+        'operator_threshold': [0.1,0.3,0.6,0.9], #, .6, 1],
         'adaptive_var_threshold': params.ADAPTIVE_VAR_THRESHOLD,
-        'operator_step_size': params.OPERATOR_STEP_SIZE, #[0, .03, .1],
+        'operator_step_size': [0.02,0.03,0.04,0.05], #[0, .03, .1],
         'start_weight': params.START_WEIGHT, # dont change
         'mutation_rate': params.MUTATION_RATE, #[.1, .3, .6],
-        'crossover_function': params.CROSSOVER_FUNCTION,  # dont change
-        'mutation_function': params.MUTATION_FUNCTION,  # dont change
-        'max_quiescence': [5],
+        'crossover_function': 'MIXED',  # dont change
+        'mutation_function': 'MIXED',  # dont change
+        'max_quiescence': [3,5,8],
     }
 
     # so we dont have to wrap everthing in a list manually

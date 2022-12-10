@@ -56,7 +56,6 @@ if __name__ == '__main__':
     parser.add_argument('--fname', type=str, required=True)
     parser.add_argument('--metric', type=str, required=True)
     parser.add_argument('--param', type=str, nargs='+', required=True)
-
     args = parser.parse_args()
 
     plot_bar(args.fname, args.param, args.metric)

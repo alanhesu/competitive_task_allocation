@@ -26,11 +26,12 @@ START_WEIGHT = .1 # initial nodeweight for returning to start. Set to 1 to make 
 # GA hyperparams
 MAX_ITER = 40
 OPERATOR_THRESHOLD = .6 # crossover for less than threshold, mutation for >=
-ADAPTIVE_VAR_THRESHOLD = 0.1 # rate of improvement threshold for adaptive randomness
+ADAPTIVE_VAR_THRESHOLD = 0.001 # rate of improvement threshold for adaptive randomness
+ADAPTIVE_VAR_ITER = 0.75 # percentage of max quiescence that must be same before increasing mutation
 OPERATOR_STEP_SIZE = 0.05 # step size for increasing mutation rate over crossover
 CROSSOVER_FUNCTION = 'MIXED' # SINGLE, TWO, UNIFORM, MIXED
 MUTATION_FUNCTION = 'MIXED'  # RESET, SWAP, INVERSION, MIXED
 MUTATION_RATE = .3 # note this and operator threshold DO NOT NEED TO ADD TO 1
-MAX_QUIESCENCE = 5 # how many iterations before early stopping
+MAX_QUIESCENCE = 8 # how many iterations before early stopping
 PHI = .9 # score = phi*minmax + (1-phi)*totalcost
 INCOMPLETE_PENALTY = 3e3
